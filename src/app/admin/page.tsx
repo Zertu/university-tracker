@@ -5,13 +5,6 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Layout from '@/components/layout/Layout'
 
-interface SessionUser {
-  id: string
-  email: string
-  name: string
-  role: 'student' | 'parent' | 'teacher' | 'admin'
-}
-
 interface User {
   id: string
   email: string
@@ -51,13 +44,13 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
-    } else if (status === 'authenticated' && (session?.user as SessionUser)?.role !== 'admin') {
+    } else if (status === 'authenticated' && session?.user.role !== 'admin') {
       router.push('/dashboard')
     }
   }, [status, session, router])
 
   useEffect(() => {
-    if ((session?.user as SessionUser)?.role === 'admin') {
+    if (session?.user.role === 'admin') {
       fetchUsers()
     }
   }, [session])
@@ -89,7 +82,7 @@ export default function AdminDashboardPage() {
     )
   }
 
-  if (!session || (session.user as SessionUser).role !== 'admin') {
+  if (!session || session.user.role !== 'admin') {
     return null
   }
 

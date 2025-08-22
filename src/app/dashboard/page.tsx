@@ -13,7 +13,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/auth/signin')
-    } else if (status === 'authenticated' && session?.user?.role !== 'student') {
+    } else if (status === 'authenticated' && session.user.role !== 'student') {
       router.push('/parent-dashboard')
     }
   }, [status, session, router])

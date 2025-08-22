@@ -74,7 +74,7 @@ const authOptions = {
       }
       return token
     },
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    // eslint-disable-next-line 
     async session({ session, token }: { session: any; token: any }) {
       if (token) {
         session.user.id = token.sub!

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn, getSession } from 'next-auth/react'
+import { signIn, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -11,6 +11,7 @@ export default function SignInPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { update } = useSession()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,15 +28,10 @@ export default function SignInPage() {
       if (result?.error) {
         setError('Invalid email or password')
       } else {
-        // Get the session to check user role
-        const session = await getSession()
-        if (session?.user?.role === 'student') {
-          router.push('/dashboard')
-        } else if (session?.user?.role === 'parent') {
-          router.push('/parent-dashboard')
-        } else {
-          router.push('/')
-        }
+        // Update session and redirect based on role
+        await update()
+        // For now, redirect to home and let middleware handle role-based routing
+        router.push('/')
       }
     } catch (error) {
       setError('An error occurred. Please try again.')
