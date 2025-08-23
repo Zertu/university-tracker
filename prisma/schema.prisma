@@ -27,6 +27,8 @@ model User {
   parentNotes        ParentNote[]
   notifications      Notification[]
   integrations       Integration[]
+  savedComparisons   SavedComparison[]
+  statusChanges      ApplicationStatusHistory[]
 
   @@map("users")
 }
@@ -84,6 +86,7 @@ model University {
 
   // Relations
   applications Application[]
+  savedComparisons SavedComparison[] @relation("ComparisonUniversities")
 
   @@map("universities")
 }
@@ -108,6 +111,7 @@ model Application {
   requirements ApplicationRequirement[]
   parentNotes  ParentNote[]
   mappings     ExternalApplicationMapping[]
+  statusHistory ApplicationStatusHistory[]
 
   @@unique([studentId, universityId, applicationType])
   @@map("applications")
@@ -199,4 +203,35 @@ model ExternalApplicationMapping {
 
   @@unique([applicationId, integrationId, externalApplicationId])
   @@map("external_application_mappings")
+}
+
+model ApplicationStatusHistory {
+  id            String   @id @default(cuid())
+  applicationId String   @map("application_id")
+  fromStatus    String?  @map("from_status") // null for initial status
+  toStatus      String   @map("to_status")
+  changedBy     String   @map("changed_by") // user who made the change
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  // Relations
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [changedBy], references: [id], onDelete: Cascade)
+
+  @@map("application_status_history")
+}
+
+model SavedComparison {
+  id          String   @id @default(cuid())
+  userId      String   @map("user_id")
+  name        String
+  description String?
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  universities University[] @relation("ComparisonUniversities")
+
+  @@map("saved_comparisons")
 }

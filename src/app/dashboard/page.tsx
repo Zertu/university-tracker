@@ -4,7 +4,13 @@ import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
 import Layout from '@/components/layout/Layout'
-import Link from 'next/link'
+import { ApplicationOverview } from '@/components/dashboard/application-overview'
+import { QuickActions } from '@/components/dashboard/quick-actions'
+import { ProgressIndicators } from '@/components/dashboard/progress-indicators'
+import { DeadlineCalendarWidget } from '@/components/dashboard/deadline-calendar-widget'
+import { RecentStatusChanges } from '@/components/applications/recent-status-changes'
+import { DeadlineSummaryWidget } from '@/components/deadlines/deadline-summary'
+import RecommendationsWidget from '@/components/recommendations/recommendations-widget'
 
 export default function DashboardPage() {
   const { data: session, status } = useSession()
@@ -22,7 +28,7 @@ export default function DashboardPage() {
     return (
       <Layout>
         <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading...</div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </Layout>
     )
@@ -34,75 +40,55 @@ export default function DashboardPage() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Student Dashboard</h1>
-          <p className="text-gray-600 mt-2">Welcome back, {session.user.name}!</p>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Student Dashboard</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base">Welcome back, {session.user.name}!</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Applications</h3>
-            <p className="text-3xl font-bold text-blue-600">0</p>
-            <p className="text-sm text-gray-500">Total applications</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Deadlines</h3>
-            <p className="text-3xl font-bold text-orange-600">0</p>
-            <p className="text-sm text-gray-500">Upcoming deadlines</p>
-          </div>
-          
-          <div className="bg-white rounded-lg shadow p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Completed</h3>
-            <p className="text-3xl font-bold text-green-600">0</p>
-            <p className="text-sm text-gray-500">Applications submitted</p>
-          </div>
-        </div>
+        {/* Main Content Grid */}
+        <div className="space-y-6 sm:space-y-8">
+          {/* Application Overview - Full Width */}
+          <ApplicationOverview />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Quick Actions</h2>
+          {/* Responsive Grid Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 sm:gap-8">
+            {/* Quick Actions - Always first on mobile */}
+            <div className="order-1 lg:order-1 xl:order-1">
+              <QuickActions />
             </div>
-            <div className="p-6 space-y-4">
-              <Link
-                href="/profile"
-                className="block w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <h3 className="font-medium text-gray-900">Complete Your Profile</h3>
-                <p className="text-sm text-gray-500">Add your academic information and test scores</p>
-              </Link>
-              
-              <Link
-                href="/relationships"
-                className="block w-full text-left p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <h3 className="font-medium text-gray-900">Manage Parent Connections</h3>
-                <p className="text-sm text-gray-500">View and manage parent access to your applications</p>
-              </Link>
-              
-              <div className="block w-full text-left p-4 border border-gray-200 rounded-lg bg-gray-50">
-                <h3 className="font-medium text-gray-500">Add University Application</h3>
-                <p className="text-sm text-gray-400">Coming soon - track your applications</p>
-              </div>
-              
-              <div className="block w-full text-left p-4 border border-gray-200 rounded-lg bg-gray-50">
-                <h3 className="font-medium text-gray-500">View Deadlines</h3>
-                <p className="text-sm text-gray-400">Coming soon - manage important dates</p>
-              </div>
-            </div>
-          </div>
 
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-xl font-semibold text-gray-900">Recent Activity</h2>
+            {/* Progress Indicators - Second on mobile, first on tablet */}
+            <div className="order-2 lg:order-1 xl:order-2">
+              <ProgressIndicators limit={5} />
             </div>
-            <div className="p-6">
-              <div className="text-center text-gray-500 py-8">
-                <p>No recent activity</p>
-                <p className="text-sm">Your application updates will appear here</p>
+
+            {/* Deadline Summary - Third on mobile, spans full width on tablet */}
+            <div className="order-3 lg:col-span-2 xl:col-span-1 xl:order-3">
+              <DeadlineSummaryWidget showNextDeadline={true} />
+            </div>
+
+            {/* Recommendations Widget - Fourth on mobile */}
+            <div className="order-4 lg:order-2 xl:order-4">
+              <RecommendationsWidget limit={3} />
+            </div>
+
+            {/* Recent Activity - Fifth on mobile, second column on tablet */}
+            <div className="order-5 lg:order-3 xl:order-5">
+              <div className="bg-white rounded-lg shadow">
+                <div className="p-4 sm:p-6 border-b border-gray-200">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900">Recent Activity</h2>
+                </div>
+                <div className="p-4 sm:p-6">
+                  <RecentStatusChanges limit={5} />
+                </div>
               </div>
+            </div>
+
+            {/* Calendar Widget - Last on mobile, spans remaining space */}
+            <div className="order-6 lg:order-4 lg:col-span-2 xl:col-span-3 xl:order-6">
+              <DeadlineCalendarWidget />
             </div>
           </div>
         </div>
