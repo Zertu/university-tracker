@@ -18,9 +18,6 @@ export function DeadlineCalendar({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchEvents();
-  }, [currentMonth, fetchEvents]);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -50,6 +47,10 @@ export function DeadlineCalendar({
     }
   }, [currentMonth]);
 
+  useEffect(() => {
+    fetchEvents();
+  }, [currentMonth, fetchEvents]);
+  
   const getDaysInMonth = (date: Date): Date[] => {
     const year = date.getFullYear();
     const month = date.getMonth();

@@ -1,25 +1,17 @@
 # University Application Tracker
 
-A comprehensive platform to help high school students manage their college application process, track deadlines, and stay organized throughout their university applications.
+A comprehensive web application for managing university applications, tracking deadlines, and staying organized throughout the application process.
 
 ## Features
 
-- **Application Management**: Track applications across multiple universities and application systems
-- **Deadline Tracking**: Never miss important deadlines with visual alerts and calendar integration
-- **Requirements Checklist**: Manage essays, recommendations, transcripts, and other requirements
-- **Parent Dashboard**: Allow parents to monitor progress with read-only access
-- **University Search**: Advanced filtering and comparison tools
-- **Third-party Integration**: Connect with CommonApp and other application platforms
+- **User Authentication**: Secure login/signup with NextAuth.js
+- **Application Management**: Track applications to different universities
+- **Deadline Tracking**: Never miss important application deadlines
+- **University Database**: Comprehensive university information
+- **Role-based Access**: Support for students, parents, and administrators
+- **Real-time Notifications**: Stay updated on application status changes
 
-## Tech Stack
-
-- **Frontend**: Next.js 15 with TypeScript and Tailwind CSS
-- **Backend**: Next.js API Routes
-- **Database**: SQLite with Prisma ORM
-- **Authentication**: NextAuth.js
-- **Deployment**: Vercel
-
-## Getting Started
+## Quick Start
 
 ### Prerequisites
 
@@ -28,24 +20,76 @@ A comprehensive platform to help high school students manage their college appli
 
 ### Installation
 
-1. Clone the repository
-2. Install dependencies:
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd university-tracker
+   ```
+
+2. **Install dependencies**
    ```bash
    npm install
    ```
 
-3. Set up the database:
+3. **Set up environment variables**
+   
+   Create a `.env.local` file in the root directory:
    ```bash
-   npx prisma generate
-   npx prisma db push
+   NEXTAUTH_URL=http://localhost:3000
+   NEXTAUTH_SECRET=23f5277f72b500978aeb4592fa4d640e1b4a070ed36d555757083a5f5eb974d6
+   DATABASE_URL="file:./dev.db"
    ```
 
-4. Run the development server:
+4. **Set up the database**
+   ```bash
+   npx prisma generate
+   npx prisma migrate dev
+   npx prisma db seed
+   npx tsx scripts/create-test-user.ts
+   ```
+
+5. **Start the development server**
    ```bash
    npm run dev
    ```
 
-5. Open [http://localhost:3000](http://localhost:3000) in your browser
+6. **Open your browser**
+   
+   Navigate to [http://localhost:3000](http://localhost:3000)
+
+### Test Account
+
+Use these credentials to test the application:
+- **Email**: `test@example.com`
+- **Password**: `password123`
+
+## Troubleshooting
+
+### Common Issues
+
+1. **Infinite redirect loop on signin**
+   - Solution: Follow the setup guide in `SETUP.md`
+   - Ensure environment variables are properly configured
+
+2. **Font loading errors**
+   - Solution: The app uses system fonts as fallback
+   - No action required - functionality is not affected
+
+3. **Database connection issues**
+   - Solution: Run `npx prisma studio` to check database
+   - Reset database: `npm run db:reset`
+
+### Detailed Setup Guide
+
+For detailed setup instructions and troubleshooting, see [SETUP.md](./SETUP.md).
+
+## Technology Stack
+
+- **Frontend**: Next.js 15, React 19, TypeScript
+- **Styling**: Tailwind CSS
+- **Authentication**: NextAuth.js
+- **Database**: SQLite with Prisma ORM
+- **Deployment**: Vercel-ready
 
 ## Project Structure
 
@@ -53,41 +97,18 @@ A comprehensive platform to help high school students manage their college appli
 src/
 ├── app/                 # Next.js app router pages
 ├── components/          # React components
-│   └── layout/         # Layout components
-├── lib/                # Utility functions and configurations
-│   ├── prisma.ts       # Database client
-│   ├── utils.ts        # General utilities
-│   └── validations.ts  # Zod validation schemas
-└── types/              # TypeScript type definitions
+├── lib/                 # Utility functions and services
+├── types/               # TypeScript type definitions
+└── middleware.ts        # Next.js middleware
 ```
 
-## Database Schema
+## Contributing
 
-The application uses a comprehensive database schema with the following main entities:
-
-- **Users**: Student, parent, teacher, and admin accounts
-- **Student Profiles**: Academic information and preferences
-- **Universities**: Comprehensive university database
-- **Applications**: Application tracking with status workflow
-- **Requirements**: Individual requirement tracking per application
-- **Integrations**: Third-party service connections
-- **Notifications**: System alerts and reminders
-
-## Development
-
-### Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run start` - Start production server
-- `npm run lint` - Run ESLint
-
-### Database Commands
-
-- `npx prisma studio` - Open Prisma Studio database browser
-- `npx prisma generate` - Generate Prisma client
-- `npx prisma db push` - Push schema changes to database
-- `npx prisma db pull` - Pull schema from database
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## License
 
