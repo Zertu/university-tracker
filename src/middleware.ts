@@ -42,6 +42,8 @@ export const config = {
     '/applications/:path*',
     '/admin/:path*',
     '/relationships/:path*',
-    // 移除 '/auth/:path*' 避免无限重定向循环
+    '/universities/:path*',
+    '/deadlines/:path*',
+    '/recommendations/:path*'
   ],
 }

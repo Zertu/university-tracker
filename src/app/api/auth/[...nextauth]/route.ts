@@ -87,8 +87,7 @@ const authOptions = {
     signIn: '/auth/signin',
     signUp: '/auth/signup',
   },
-  secret: process.env.NEXTAUTH_SECRET || 'fallback-secret-for-development',
-  debug: process.env.NODE_ENV === 'development',
+  secret: process.env.NEXTAUTH_SECRET,
 }
 
 const handler = NextAuth(authOptions)

@@ -14,42 +14,29 @@ interface RouteParams {
 // GET /api/applications/[id] - Get a specific application
 export async function GET(
   request: NextRequest,
-  { params }: RouteParams
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const resolvedParams = await params;
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.id) {
+
+    if (!session?.user) {
       return NextResponse.json(
         { error: 'Unauthorized' },
         { status: 401 }
       );
     }
 
-    // Students can access their own applications, parents can access their children's
-    if (session.user.role !== 'student' && session.user.role !== 'parent') {
+    if (session.user.role !== 'student') {
       return NextResponse.json(
-        { error: 'Access denied' },
+        { error: 'Forbidden' },
         { status: 403 }
       );
     }
 
-    const studentId = session.user.id;
-
-    // If parent, we need to verify they have access to this application
-    if (session.user.role === 'parent') {
-      // For now, we'll implement parent access in a future task
-      // This is a placeholder for parent-child relationship verification
-      return NextResponse.json(
-        { error: 'Parent access not yet implemented' },
-        { status: 403 }
-      );
-    }
-
+    const resolvedParams = await params;
     const application = await ApplicationService.getApplicationById(
       resolvedParams.id,
-      studentId
+      session.user.id
     );
 
     if (!application) {
@@ -60,11 +47,11 @@ export async function GET(
     }
 
     return NextResponse.json(application);
+
   } catch (error) {
     console.error('Error fetching application:', error);
-    
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Failed to fetch application' },
       { status: 500 }
     );
   }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, JSX } from 'react';
 import Link from 'next/link';
 import { DeadlineAlert } from '@/lib/services/deadline';
 
@@ -20,10 +20,6 @@ export function DeadlineAlerts({
   const [alerts, setAlerts] = useState<DeadlineAlert[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    fetchAlerts();
-  }, [daysAhead, includeRequirements, fetchAlerts]);
 
   const fetchAlerts = useCallback(async () => {
     try {
@@ -47,6 +43,10 @@ export function DeadlineAlerts({
       setIsLoading(false);
     }
   }, [daysAhead, includeRequirements, maxItems]);
+
+  useEffect(() => {
+    fetchAlerts();
+  }, [daysAhead, includeRequirements, fetchAlerts]);
 
   const getUrgencyColor = (urgencyLevel: string): string => {
     switch (urgencyLevel) {

@@ -1,39 +1,102 @@
-import { Metadata } from 'next';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useEffect } from 'react';
 import Link from 'next/link';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { ApplicationService } from '@/lib/services/application';
+import Layout from '@/components/layout/Layout';
 import { ApplicationList } from '@/components/applications/application-list';
+import { SuccessMessage } from '@/components/ui/success-message';
+import { useState } from 'react';
+import { ApplicationWithRelations } from '@/lib/services/application';
 
-export const metadata: Metadata = {
-  title: 'My Applications | University Tracker',
-  description: 'Manage your university applications and track their progress.',
-};
+interface ApplicationStats {
+  total: number;
+  byStatus: {
+    not_started?: number;
+    in_progress?: number;
+    submitted?: number;
+    under_review?: number;
+    decided?: number;
+  };
+  upcomingDeadlines: number;
+}
 
-export default async function ApplicationsPage() {
-  const session = await getServerSession(authOptions);
+export default function ApplicationsPage() {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const [applications, setApplications] = useState<ApplicationWithRelations[]>([]);
+  const [stats, setStats] = useState<ApplicationStats>({
+    total: 0,
+    byStatus: {},
+    upcomingDeadlines: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-  if (!session?.user) {
-    redirect('/auth/signin');
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    } else if (status === 'authenticated' && session?.user?.role !== 'student') {
+      router.push('/dashboard');
+    }
+  }, [status, session, router]);
+
+  useEffect(() => {
+    if (session?.user?.id) {
+      // Fetch applications and stats using API route
+      const fetchData = async () => {
+        try {
+          const response = await fetch('/api/applications/list?page=1&limit=50');
+          if (!response.ok) {
+            throw new Error('Failed to fetch applications');
+          }
+          const data = await response.json();
+          
+          setApplications(data.applications || []);
+          setStats(data.stats || {
+            total: 0,
+            byStatus: {},
+            upcomingDeadlines: 0
+          });
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchData();
+    }
+  }, [session?.user?.id]);
+
+  if (status === 'loading' || loading) {
+    return (
+      <Layout>
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+        </div>
+      </Layout>
+    );
   }
 
-  if (session.user.role !== 'student') {
-    redirect('/dashboard');
+  if (!session || session.user.role !== 'student') {
+    return null;
   }
-
-  // Fetch initial applications data
-  const { applications } = await ApplicationService.getApplicationsByStudent(
-    session.user.id,
-    { page: 1, limit: 50 } // Load more initially for better UX
-  );
-
-  // Fetch application statistics
-  const stats = await ApplicationService.getApplicationStats(session.user.id);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <Layout>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Success Message */}
+        {searchParams.get('created') === 'true' && (
+          <div className="mb-6">
+            <SuccessMessage 
+              title="Application Created Successfully!"
+              message="Your new application has been added to your list. You can now track its progress and manage requirements."
+            />
+          </div>
+        )}
+
         {/* Header */}
         <div className="mb-8">
           <div className="flex justify-between items-center">
@@ -158,6 +221,6 @@ export default async function ApplicationsPage() {
         {/* Applications List */}
         <ApplicationList initialApplications={applications} />
       </div>
-    </div>
+    </Layout>
   );
 }

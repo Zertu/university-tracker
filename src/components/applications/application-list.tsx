@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ApplicationWithRelations } from '@/lib/services/application';
 import { ApplicationStatus, ApplicationType } from '@/lib/validations/application';
-import { useQuery } from '@/hooks/use-api';
 import { LoadingSpinner, SkeletonList } from '@/components/ui/loading';
 import { ErrorBoundary } from '@/components/error/error-boundary';
 
@@ -20,45 +19,43 @@ export function ApplicationList({ initialApplications = [], showFilters = true }
     applicationType: '',
     search: ''
   });
+  const [loading, setLoading] = useState(false);
 
   const fetchApplications = useCallback(async () => {
-    const queryParams = new URLSearchParams();
-    
-    if (filters.status) queryParams.append('status', filters.status);
-    if (filters.applicationType) queryParams.append('applicationType', filters.applicationType);
-    
-    const response = await fetch(`/api/applications?${queryParams}`);
-    
-    if (!response.ok) {
-      throw new Error('Failed to fetch applications');
+    setLoading(true);
+    try {
+      const queryParams = new URLSearchParams();
+      
+      if (filters.status) queryParams.append('status', filters.status);
+      if (filters.applicationType) queryParams.append('applicationType', filters.applicationType);
+      
+      const response = await fetch(`/api/applications/list?${queryParams}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch applications');
+      }
+      
+      const data = await response.json();
+      setApplications(data.applications || []);
+    } catch (error) {
+      console.error('Error fetching applications:', error);
+    } finally {
+      setLoading(false);
     }
-    
-    const data = await response.json();
-    return data.applications;
-  }, [filters]);
+  }, [filters.status, filters.applicationType]);
 
-  const { data, loading, error, execute } = useQuery<ApplicationWithRelations[]>({
-    showErrorToast: true,
-    retries: 2,
-  });
-
+  // Initial load - always fetch if no initial applications
   useEffect(() => {
     if (initialApplications.length === 0) {
-      execute(fetchApplications).then((fetchedApplications) => {
-        if (fetchedApplications) {
-          setApplications(fetchedApplications);
-        }
-      }).catch(() => {
-        // Error is handled by useQuery hook
-      });
+      fetchApplications();
     }
-  }, [filters, execute, initialApplications.length, fetchApplications]);
+  }, [initialApplications.length, fetchApplications]);
 
+  // Refetch when filters change - this should always trigger
   useEffect(() => {
-    if (data) {
-      setApplications(data);
-    }
-  }, [data]);
+    // Always fetch when filters change, regardless of initialApplications
+    fetchApplications();
+  }, [filters.status, filters.applicationType, fetchApplications]);
 
   const getStatusColor = (status: ApplicationStatus): string => {
     switch (status) {
@@ -199,8 +196,15 @@ export function ApplicationList({ initialApplications = [], showFilters = true }
         </div>
       )}
 
+      {/* Loading indicator */}
+      {loading && (
+        <div className="flex justify-center items-center py-8">
+          <LoadingSpinner />
+        </div>
+      )}
+
       {/* Applications List */}
-      {filteredApplications.length === 0 ? (
+      {!loading && filteredApplications.length === 0 ? (
         <div className="text-center py-8">
           <p className="text-gray-500 mb-4">No applications found.</p>
           <Link

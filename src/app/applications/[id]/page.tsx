@@ -1,10 +1,13 @@
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import { redirect } from 'next/navigation';
-import { ApplicationService } from '@/lib/services/application';
+'use client';
+
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { ApplicationWithRelations } from '@/lib/services/application';
 import { StatusWorkflow } from '@/components/applications/status-workflow';
 import { StatusHistory } from '@/components/applications/status-history';
 import Link from 'next/link';
+import { ApplicationStatus } from '@/lib/validations/application';
 
 interface PageProps {
   params: Promise<{
@@ -12,29 +15,69 @@ interface PageProps {
   }>;
 }
 
-export default async function ApplicationDetailPage({ params }: PageProps) {
-  const resolvedParams = await params;
-  const session = await getServerSession(authOptions);
+export default function ApplicationDetailPage({ params }: PageProps) {
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const [application, setApplication] = useState<ApplicationWithRelations | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  if (!session?.user?.id) {
-    redirect('/auth/signin');
-  }
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/auth/signin');
+    } else if (status === 'authenticated' && session?.user?.role !== 'student') {
+      router.push('/dashboard');
+    }
+  }, [status, session, router]);
 
-  if (session.user.role !== 'student') {
-    redirect('/dashboard');
-  }
+  useEffect(() => {
+    const fetchApplication = async () => {
+      if (status === 'authenticated' && session?.user?.id) {
+        try {
+          const resolvedParams = await params;
+          const response = await fetch(`/api/applications/${resolvedParams.id}`);
+          
+          if (!response.ok) {
+            if (response.status === 404) {
+              setError('Application not found');
+            } else {
+              setError('Failed to fetch application');
+            }
+            return;
+          }
+          
+          const data = await response.json();
+          setApplication(data);
+        } catch (error) {
+          console.error('Error fetching application:', error);
+          setError('Failed to fetch application');
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
 
-  let application;
-  try {
-    application = await ApplicationService.getApplicationById(
-      resolvedParams.id,
-      session.user.id
+    fetchApplication();
+  }, [status, session?.user?.id, params]);
+
+  const handleStatusChange = (newStatus: ApplicationStatus) => {
+    // Refresh the page to show updated status
+    window.location.reload();
+  };
+
+  if (status === 'loading' || loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          </div>
+        </div>
+      </div>
     );
-  } catch (error) {
-    console.error('Error fetching application:', error);
   }
 
-  if (!application) {
+  if (error || !application) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -122,9 +165,9 @@ export default async function ApplicationDetailPage({ params }: PageProps) {
             <div className="bg-white rounded-lg shadow-sm p-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-6">Application Status</h2>
               <StatusWorkflow
-                currentStatus={application.status as any}
+                currentStatus={application.status as ApplicationStatus}
                 applicationId={application.id}
-                onStatusChange={() => window.location.reload()}
+                onStatusChange={handleStatusChange}
               />
             </div>
 

@@ -44,17 +44,25 @@ export function ApplicationForm({ universities, onSuccess, onCancel }: Applicati
     setError(null);
 
     try {
+      // Convert date format from YYYY-MM-DD to ISO 8601
+      const submitData = {
+        ...formData,
+        deadline: formData.deadline && formData.deadline.trim() !== '' 
+          ? new Date(formData.deadline + 'T23:59:59.000Z').toISOString() 
+          : undefined
+      };
+
       const response = await fetch('/api/applications', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submitData),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create application');
+        throw new Error(errorData.error?.message || 'Failed to create application');
       }
 
       const application = await response.json();
@@ -62,10 +70,15 @@ export function ApplicationForm({ universities, onSuccess, onCancel }: Applicati
       if (onSuccess) {
         onSuccess();
       } else {
-        router.push(`/applications/${application.id}`);
+        // Show success message and redirect
+        console.log('✅ Application created successfully:', application);
+        
+        // Redirect to applications list with success parameter
+        router.push('/applications?created=true');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      console.error('❌ Error creating application:', err);
+      setError(err instanceof Error ? err.message : 'An error occurred while creating the application');
     } finally {
       setIsLoading(false);
     }
