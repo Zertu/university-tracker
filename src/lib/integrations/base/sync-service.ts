@@ -3,7 +3,7 @@
  */
 
 import { prisma } from '@/lib/prisma';
-import type { Application, Integration, ExternalApplicationMapping } from '@prisma/client';
+import type { Application, Integration, ExternalApplicationMapping, Prisma } from '@prisma/client';
 import type { SyncResult, SyncError, SyncOptions } from './integration';
 
 export interface SyncableApplication {
@@ -333,7 +333,7 @@ export abstract class BaseSyncService {
   }
 
   private async getApplicationsToSync(applicationIds?: string[]): Promise<SyncableApplication[]> {
-    const where: unknown = { studentId: this.userId };
+    const where: Prisma.ApplicationWhereInput = { studentId: this.userId };
     
     if (applicationIds && applicationIds.length > 0) {
       where.id = { in: applicationIds };

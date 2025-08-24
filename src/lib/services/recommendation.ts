@@ -156,13 +156,14 @@ export class RecommendationService {
     profileStats: any,
     filters: RecommendationFilters
   ): Prisma.UniversityWhereInput {
+    const andConditions: Prisma.UniversityWhereInput[] = [];
     const whereClause: Prisma.UniversityWhereInput = {
-      AND: [],
+      AND: andConditions,
     };
 
     // Filter by target countries from profile
     if (profileStats.preferences.countries.length > 0) {
-      whereClause.AND!.push({
+      andConditions.push({
         country: {
           in: filters.countries || profileStats.preferences.countries,
         },
@@ -171,13 +172,13 @@ export class RecommendationService {
 
     // Filter by majors offered (if user has intended majors)
     if (profileStats.preferences.majors.length > 0) {
-      const majorFilters = (filters.majors || profileStats.preferences.majors).map(major => ({
+      const majorFilters = (filters.majors || profileStats.preferences.majors).map((major: string) => ({
         majorsOffered: {
           contains: major,
         },
       }));
 
-      whereClause.AND!.push({
+      andConditions.push({
         OR: majorFilters,
       });
     }
@@ -194,14 +195,14 @@ export class RecommendationService {
         acceptanceRateFilter.lte = filters.maxAcceptanceRate;
       }
 
-      whereClause.AND!.push({
+      andConditions.push({
         acceptanceRate: acceptanceRateFilter,
       });
     }
 
     // Filter by tuition (use out-of-state tuition as default)
     if (filters.maxTuition !== undefined) {
-      whereClause.AND!.push({
+      andConditions.push({
         OR: [
           { tuitionOutState: { lte: filters.maxTuition } },
           { tuitionInState: { lte: filters.maxTuition } },
@@ -211,15 +212,15 @@ export class RecommendationService {
 
     // Filter by application system
     if (filters.applicationSystem) {
-      whereClause.AND!.push({
+      andConditions.push({
         applicationSystem: filters.applicationSystem,
       });
     }
 
     // Ensure we have basic required data
-    whereClause.AND!.push({
+    andConditions.push({
       acceptanceRate: { not: null },
-      name: { not: null },
+      name: { not: '' },
     });
 
     return whereClause;

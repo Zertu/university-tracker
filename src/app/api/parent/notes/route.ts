@@ -92,7 +92,7 @@ export async function POST(request: NextRequest) {
       data: {
         parentId: session.user.id,
         applicationId: applicationId,
-        content: content
+        note: content
       },
       include: {
         application: {

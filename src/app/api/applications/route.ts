@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0,
     };
 
-    const result = await ApplicationService.getApplicationsByStudent(session.user.id, query);
+    const result = await ApplicationService.getApplicationsByStudent(session.user.id, query as any);
     return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching applications:', error);
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     if (error instanceof z.ZodError) {
       return NextResponse.json(
-        { error: 'Validation error', details: error.errors },
+        { error: 'Validation error', details: error.issues },
         { status: 400 }
       );
     }

@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       major,
     };
 
-    const result = await searchUniversities(filters);
+    const result = await searchUniversities(filters as any);
 
     return NextResponse.json(result);
   } catch (error) {

@@ -103,8 +103,8 @@ export default function UserProfileForm() {
       if (error instanceof z.ZodError) {
         const fieldErrors: Record<string, string> = {}
         error.issues.forEach((err) => {
-          if (err.path) {
-            fieldErrors[err.path[0]] = err.message
+          if (err.path && err.path[0] !== undefined) {
+            fieldErrors[String(err.path[0])] = err.message
           }
         })
         setErrors(fieldErrors)

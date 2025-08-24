@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-config';
 import { ApplicationService } from '@/lib/services/application';
 import { RequirementsService } from '@/lib/services/requirements';
 import { UpdateApplicationRequirementSchema, RequirementStatusSchema } from '@/lib/validations/application';

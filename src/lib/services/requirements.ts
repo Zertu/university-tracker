@@ -62,6 +62,8 @@ export class RequirementsService {
 
       return {
         ...req,
+        requirementType: req.requirementType as RequirementType,
+        status: req.status as RequirementStatus,
         isOverdue,
         daysUntilDeadline
       };
@@ -325,6 +327,8 @@ export class RequirementsService {
 
           upcomingRequirements.push({
             ...req,
+            requirementType: req.requirementType as RequirementType,
+            status: req.status as RequirementStatus,
             isOverdue: false,
             daysUntilDeadline
           });
@@ -370,6 +374,8 @@ export class RequirementsService {
 
           overdueRequirements.push({
             ...req,
+            requirementType: req.requirementType as RequirementType,
+            status: req.status as RequirementStatus,
             isOverdue: true,
             daysUntilDeadline
           });
@@ -547,6 +553,8 @@ export class RequirementsService {
 
         const requirementWithProgress: RequirementWithProgress = {
           ...req,
+          requirementType: req.requirementType as RequirementType,
+          status: req.status as RequirementStatus,
           isOverdue,
           daysUntilDeadline
         };

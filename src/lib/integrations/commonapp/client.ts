@@ -199,8 +199,7 @@ export class CommonAppClient {
         'Accept': 'application/json',
         'User-Agent': 'UniversityTracker/1.0',
         ...options.headers
-      },
-      timeout: this.config.timeout
+      }
     };
 
     let lastError: any;

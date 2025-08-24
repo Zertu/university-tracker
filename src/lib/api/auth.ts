@@ -20,7 +20,7 @@ export async function getAuthenticatedUser(request: NextRequest): Promise<AuthCo
   const session = await getServerSession(authOptions);
 
   if (!session || !session.user) {
-    throw new UnauthorizedError('Authentication required');
+    throw UnauthorizedError('Authentication required');
   }
 
   return {
@@ -48,7 +48,7 @@ export function withRole(
 
   return withAuth(async (request, context, auth) => {
     if (!roles.includes(auth.user.role)) {
-      throw new ForbiddenError(`Access denied. Required role: ${roles.join(' or ')}`);
+      throw ForbiddenError(`Access denied. Required role: ${roles.join(' or ')}`);
     }
 
     return handler(request, context, auth);
@@ -64,14 +64,14 @@ export function withOwnership<T>(
     const resourceId = context.params?.id;
     
     if (!resourceId) {
-      throw new ForbiddenError('Resource ID required for ownership check');
+      throw ForbiddenError('Resource ID required for ownership check');
     }
 
     const ownerId = await getResourceOwnerId(resourceId, auth);
 
     // Allow access if user owns the resource or is an admin
     if (auth.user.id !== ownerId && auth.user.role !== 'admin') {
-      throw new ForbiddenError('You can only access your own resources');
+      throw ForbiddenError('You can only access your own resources');
     }
 
     return handler(request, context, auth);
@@ -95,7 +95,7 @@ export function withParentChildAccess(
     if (auth.user.role === 'parent') {
       const hasAccess = await checkParentChildRelationship(auth.user.id, studentId);
       if (!hasAccess) {
-        throw new ForbiddenError('You can only access your children\'s data');
+        throw ForbiddenError('You can only access your children\'s data');
       }
       return handler(request, context, auth);
     }
@@ -105,7 +105,7 @@ export function withParentChildAccess(
       return handler(request, context, auth);
     }
 
-    throw new ForbiddenError('Access denied');
+    throw ForbiddenError('Access denied');
   });
 }
 
@@ -188,7 +188,7 @@ export function withPermission(
 ) {
   return withAuth(async (request, context, auth) => {
     if (!hasPermission(auth.user.role, resource, action)) {
-      throw new ForbiddenError(`Permission denied: ${action} ${resource}`);
+      throw ForbiddenError(`Permission denied: ${action} ${resource}`);
     }
 
     return handler(request, context, auth);
@@ -204,13 +204,13 @@ export function withApiKey(
                   request.headers.get('authorization')?.replace('Bearer ', '');
 
     if (!apiKey) {
-      throw new UnauthorizedError('API key required');
+      throw UnauthorizedError('API key required');
     }
 
     // Validate API key (implement your own validation logic)
     const isValidApiKey = await validateApiKey(apiKey);
     if (!isValidApiKey) {
-      throw new UnauthorizedError('Invalid API key');
+      throw UnauthorizedError('Invalid API key');
     }
 
     return handler(request, context, apiKey);
@@ -257,7 +257,7 @@ export function withCSRFProtection(
     const sessionCsrfToken = request.headers.get('x-session-csrf-token');
 
     if (!csrfToken || !sessionCsrfToken || csrfToken !== sessionCsrfToken) {
-      throw new ForbiddenError('CSRF token mismatch');
+      throw ForbiddenError('CSRF token mismatch');
     }
 
     return handler(request, context);

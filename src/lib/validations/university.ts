@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 
 // University validation schema
 export const universitySchema = z.object({
@@ -102,27 +103,27 @@ export function formatUniversityMajors(majors: string[]): string | null {
 
 // University search utility functions
 export function buildUniversitySearchQuery(filters: UniversitySearchInput) {
-  const where: unknown = {};
+  const where: Prisma.UniversityWhereInput = {};
 
   if (filters.query) {
     where.OR = [
-      { name: { contains: filters.query, mode: 'insensitive' } },
-      { city: { contains: filters.query, mode: 'insensitive' } },
-      { state: { contains: filters.query, mode: 'insensitive' } },
-      { country: { contains: filters.query, mode: 'insensitive' } },
+      { name: { contains: filters.query } },
+      { city: { contains: filters.query } },
+      { state: { contains: filters.query } },
+      { country: { contains: filters.query } },
     ];
   }
 
   if (filters.country) {
-    where.country = { equals: filters.country, mode: 'insensitive' };
+    where.country = { equals: filters.country };
   }
 
   if (filters.state) {
-    where.state = { equals: filters.state, mode: 'insensitive' };
+    where.state = { equals: filters.state };
   }
 
   if (filters.city) {
-    where.city = { equals: filters.city, mode: 'insensitive' };
+    where.city = { equals: filters.city };
   }
 
   if (filters.applicationSystem) {

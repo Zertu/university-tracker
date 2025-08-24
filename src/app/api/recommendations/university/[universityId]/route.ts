@@ -1,14 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-config';
 import { RecommendationService } from '@/lib/services/recommendation';
 
 // GET /api/recommendations/university/[universityId] - Get recommendation for specific university
 export async function GET(
   request: NextRequest,
-  { params }: { params: { universityId: string } }
+  { params }: { params: Promise<{ universityId: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
@@ -21,7 +22,7 @@ export async function GET(
 
     const recommendation = await RecommendationService.getUniversityRecommendation(
       session.user.id,
-      params.universityId
+      resolvedParams.universityId
     );
 
     if (!recommendation) {

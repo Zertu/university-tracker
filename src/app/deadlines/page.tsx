@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-config';
 import { DeadlineAlerts } from '@/components/deadlines/deadline-alerts';
 import { DeadlineCalendar } from '@/components/deadlines/deadline-calendar';
 import { DeadlineSummaryWidget } from '@/components/deadlines/deadline-summary';

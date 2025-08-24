@@ -3,15 +3,16 @@ import { notFound } from 'next/navigation';
 import RecommendationsList from '@/components/recommendations/recommendations-list';
 
 interface CategoryPageProps {
-  params: {
+  params: Promise<{
     category: string;
-  };
+  }>;
 }
 
 const validCategories = ['reach', 'target', 'safety'];
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
-  const category = params.category;
+  const resolvedParams = await params;
+  const category = resolvedParams.category;
   
   if (!validCategories.includes(category)) {
     return {
@@ -27,8 +28,9 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   };
 }
 
-export default function CategoryRecommendationsPage({ params }: CategoryPageProps) {
-  const category = params.category;
+export default async function CategoryRecommendationsPage({ params }: CategoryPageProps) {
+  const resolvedParams = await params;
+  const category = resolvedParams.category;
   
   if (!validCategories.includes(category)) {
     notFound();

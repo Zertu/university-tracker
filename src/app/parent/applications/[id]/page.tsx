@@ -44,12 +44,18 @@ interface Application {
   }>
 }
 
-export default function ParentApplicationDetailPage({ params }: { params: { id: string } }) {
+export default async function ParentApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  const applicationId = resolvedParams.id
+  
+  return <ClientComponent applicationId={applicationId} />
+}
+
+function ClientComponent({ applicationId }: { applicationId: string }) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
   const childId = searchParams.get('childId')
-  const applicationId = params.id
   
   const [application, setApplication] = useState<Application | null>(null)
   const [loading, setLoading] = useState(true)

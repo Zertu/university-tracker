@@ -149,8 +149,10 @@ export async function GET(request: NextRequest) {
         }
         
         // Then by priority
-        const priorityOrder = { critical: 0, high: 1, medium: 2, low: 3 };
-        const priorityDiff = priorityOrder[a.priority] - priorityOrder[b.priority];
+        const priorityOrder: Record<'critical' | 'high' | 'medium' | 'low', number> = { critical: 0, high: 1, medium: 2, low: 3 };
+        const priorityA = priorityOrder[a.priority as 'critical' | 'high' | 'medium' | 'low'];
+        const priorityB = priorityOrder[b.priority as 'critical' | 'high' | 'medium' | 'low'];
+        const priorityDiff = priorityA - priorityB;
         if (priorityDiff !== 0) return priorityDiff;
         
         // Finally by due date

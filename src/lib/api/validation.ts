@@ -40,9 +40,9 @@ export async function validateRequest<
       result.body = options.body.parse(body);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new ValidationError('Request body validation failed', error.errors);
+        throw ValidationError('Request body validation failed', error.issues);
       }
-      throw new ValidationError('Invalid JSON in request body');
+      throw ValidationError('Invalid JSON in request body');
     }
   }
 
@@ -54,7 +54,7 @@ export async function validateRequest<
       result.query = options.query.parse(queryParams);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new ValidationError('Query parameters validation failed', error.errors);
+        throw ValidationError('Query parameters validation failed', error.issues);
       }
       throw error;
     }
@@ -66,7 +66,7 @@ export async function validateRequest<
       result.params = options.params.parse(params);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new ValidationError('Route parameters validation failed', error.errors);
+        throw ValidationError('Route parameters validation failed', error.issues);
       }
       throw error;
     }

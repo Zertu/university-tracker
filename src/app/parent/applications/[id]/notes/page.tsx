@@ -22,12 +22,20 @@ interface Application {
   }
 }
 
-export default function ApplicationNotesPage({ params }: { params: { id: string } }) {
+export default function ApplicationNotesPage({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
   const childId = searchParams.get('childId')
-  const applicationId = params.id
+  const [applicationId, setApplicationId] = useState<string>('')
+  
+  useEffect(() => {
+    const resolveParams = async () => {
+      const resolvedParams = await params
+      setApplicationId(resolvedParams.id)
+    }
+    resolveParams()
+  }, [params])
   
   const [notes, setNotes] = useState<ParentNote[]>([])
   const [application, setApplication] = useState<Application | null>(null)

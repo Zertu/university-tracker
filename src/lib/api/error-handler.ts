@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ZodError } from 'zod';
+import { ZodError, ZodIssue } from 'zod';
 
 export interface ApiErrorResponse {
   error: {
@@ -57,7 +57,7 @@ export function createErrorResponse(
     statusCode = 422;
     message = 'Validation failed';
     code = 'VALIDATION_ERROR';
-    details = error.errors.reduce((acc, err) => {
+    details = error.issues.reduce((acc: Record<string, string>, err: ZodIssue) => {
       const field = err.path.join('.');
       acc[field] = err.message;
       return acc;

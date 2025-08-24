@@ -3,7 +3,7 @@ import { notificationService } from './notification';
 
 const prisma = new PrismaClient();
 
-export class NotificationScheduler {
+class NotificationScheduler {
   /**
    * Check for upcoming deadlines and send reminder notifications
    */
@@ -173,9 +173,6 @@ export class NotificationScheduler {
             where: {
               userId: user.id,
               type: 'deadline_reminder',
-              message: {
-                contains: `overdue`,
-              },
               message: {
                 contains: application.university.name,
               },

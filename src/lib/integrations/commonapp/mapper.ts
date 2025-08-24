@@ -39,12 +39,12 @@ export class CommonAppMapper {
   ): Partial<CommonAppApplication> {
     return {
       college_id: collegeId || internalApp.universityId,
-      application_type: this.mapToCommonAppApplicationType(internalApp.applicationType),
-      status: this.mapToCommonAppStatus(internalApp.status),
+      application_type: this.mapToCommonAppApplicationType(internalApp.applicationType) as "early_decision" | "early_action" | "regular_decision",
+      status: this.mapToCommonAppStatus(internalApp.status) as "not_started" | "in_progress" | "submitted" | "under_review" | "decision_made",
       deadline: internalApp.deadline.toISOString(),
       submitted_date: internalApp.submittedDate?.toISOString(),
       decision_date: internalApp.decisionDate?.toISOString(),
-      decision: internalApp.decisionType ? this.mapToCommonAppDecision(internalApp.decisionType) : null
+      decision: internalApp.decisionType ? this.mapToCommonAppDecision(internalApp.decisionType) as "accepted" | "rejected" | "waitlisted" : null
     };
   }
 
@@ -92,10 +92,10 @@ export class CommonAppMapper {
     internalReq: ApplicationRequirement
   ): Partial<CommonAppRequirement> {
     return {
-      type: this.mapToCommonAppRequirementType(internalReq.requirementType),
+      type: this.mapToCommonAppRequirementType(internalReq.requirementType) as "essay" | "recommendation" | "transcript" | "test_scores" | "supplement",
       name: internalReq.title,
-      description: internalReq.description,
-      status: this.mapToCommonAppRequirementStatus(internalReq.status),
+      description: internalReq.description || undefined,
+      status: this.mapToCommonAppRequirementStatus(internalReq.status) as "not_started" | "in_progress" | "completed",
       deadline: internalReq.deadline?.toISOString(),
       required: true // Assume all requirements are required by default
     };

@@ -78,7 +78,6 @@ export function createRateLimit(config: RateLimitConfig) {
 function defaultKeyGenerator(request: NextRequest): string {
   const ip = request.headers.get('x-forwarded-for') || 
             request.headers.get('x-real-ip') || 
-            request.ip || 
             'unknown';
   
   return `rate_limit:${ip}`;
@@ -99,7 +98,6 @@ export const rateLimiters = {
     keyGenerator: (request) => {
       const ip = request.headers.get('x-forwarded-for') || 
                 request.headers.get('x-real-ip') || 
-                request.ip || 
                 'unknown';
       return `auth_limit:${ip}`;
     },
@@ -112,7 +110,6 @@ export const rateLimiters = {
     keyGenerator: (request) => {
       const ip = request.headers.get('x-forwarded-for') || 
                 request.headers.get('x-real-ip') || 
-                request.ip || 
                 'unknown';
       return `upload_limit:${ip}`;
     },
@@ -125,7 +122,6 @@ export const rateLimiters = {
     keyGenerator: (request) => {
       const ip = request.headers.get('x-forwarded-for') || 
                 request.headers.get('x-real-ip') || 
-                request.ip || 
                 'unknown';
       return `search_limit:${ip}`;
     },
@@ -143,7 +139,7 @@ export function withRateLimit(
     if (!allowed) {
       const retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
       
-      throw new RateLimitError(
+      throw RateLimitError(
         `Too many requests. Try again in ${retryAfter} seconds.`
       );
     }
@@ -171,7 +167,6 @@ export function createUserRateLimit(config: RateLimitConfig & { getUserId: (requ
       // Fall back to IP-based limiting for unauthenticated users
       const ip = request.headers.get('x-forwarded-for') || 
                 request.headers.get('x-real-ip') || 
-                request.ip || 
                 'unknown';
       return `ip_limit:${ip}`;
     },

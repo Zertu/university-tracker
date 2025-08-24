@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-config';
 import { RecommendationService } from '@/lib/services/recommendation';
 import { z } from 'zod';
 
@@ -15,9 +15,10 @@ const CategoryQuerySchema = z.object({
 // GET /api/recommendations/category/[category] - Get recommendations by category
 export async function GET(
   request: NextRequest,
-  { params }: { params: { category: string } }
+  { params }: { params: Promise<{ category: string }> }
 ) {
   try {
+    const resolvedParams = await params;
     const session = await getServerSession(authOptions);
     
     if (!session?.user?.id) {
@@ -29,7 +30,7 @@ export async function GET(
     }
 
     // Validate category
-    const category = CategorySchema.parse(params.category);
+    const category = CategorySchema.parse(resolvedParams.category);
 
     // Parse query parameters
     const { searchParams } = new URL(request.url);
