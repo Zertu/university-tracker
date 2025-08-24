@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/app/api/auth/[...nextauth]/route';
+import { authOptions } from '@/lib/auth-config';
 import { ProfileService } from '@/lib/services/profile';
 import { CreateStudentProfileSchema, UpdateStudentProfileSchema } from '@/lib/validations/profile';
 import { z } from 'zod';

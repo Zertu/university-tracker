@@ -292,7 +292,7 @@ describe('NotificationScheduler', () => {
             await scheduler.sendDecisionNotification('app-1', 'waitlisted', new Date());
             expect(notificationService.createNotification).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    title: '‚è≥ Decision Received',
+                    title: '‚è?Decision Received',
                     message: 'You have been waitlisted to Test University!',
                 })
             );

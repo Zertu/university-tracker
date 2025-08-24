@@ -6,11 +6,12 @@ const prisma = new PrismaClient()
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { noteId: string } }
+  { params }: { params: Promise<{ noteId: string }> }
 ) {
   return withAuth(request, async (req, user) => {
     try {
-      const { noteId } = params
+      const resolvedParams = await params
+      const { noteId } = resolvedParams
 
       // Find the note and verify it belongs to this parent
       const note = await prisma.parentNote.findUnique({
