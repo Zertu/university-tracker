@@ -38,6 +38,8 @@ export const config = {
   matcher: [
     '/dashboard/:path*',
     '/parent-dashboard/:path*',
+    '/teacher/:path*',
+    '/teacher-dashboard/:path*',
     '/profile/:path*',
     '/applications/:path*',
     '/admin/:path*',
