@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { SessionProvider } from "@/components/providers/SessionProvider";
+import ConditionalLayout from "@/components/layout/ConditionalLayout";
 
 // const geistSans = Geist({
 //   variable: "--font-geist-sans",
@@ -35,7 +36,9 @@ export default function RootLayout({
         }}
       >
         <SessionProvider>
-          {children}
+          <ConditionalLayout>
+            {children}
+          </ConditionalLayout>
         </SessionProvider>
       </body>
     </html>

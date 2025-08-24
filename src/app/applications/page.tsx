@@ -85,7 +85,6 @@ export default function ApplicationsPage() {
   }
 
   return (
-    <Layout>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Success Message */}
         {searchParams.get('created') === 'true' && (
@@ -217,10 +216,7 @@ export default function ApplicationsPage() {
             </div>
           </div>
         </div>
-
-        {/* Applications List */}
         <ApplicationList initialApplications={applications} />
       </div>
-    </Layout>
   );
 }

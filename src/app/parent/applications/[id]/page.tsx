@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Layout from '@/components/layout/Layout'
+
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
 
@@ -91,11 +91,9 @@ export default function ParentApplicationDetailPage({ params }: { params: { id: 
 
   if (status === 'loading' || loading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
     )
   }
 
@@ -105,49 +103,43 @@ export default function ParentApplicationDetailPage({ params }: { params: { id: 
 
   if (!childId) {
     return (
-      <Layout>
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Missing Child ID</h3>
-            <p className="text-gray-500 mb-4">
-              Please access this page through the parent dashboard.
-            </p>
-            <Link
-              href="/parent-dashboard"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-            >
-              Go to Dashboard
-            </Link>
-          </div>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Missing Child ID</h3>
+          <p className="text-gray-500 mb-4">
+            Please access this page through the parent dashboard.
+          </p>
+          <Link
+            href="/parent-dashboard"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            Go to Dashboard
+          </Link>
         </div>
-      </Layout>
+      </div>
     )
   }
 
   if (error) {
     return (
-      <Layout>
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-8">
-            <div className="text-red-600">Error: {error}</div>
-          </div>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow p-8">
+          <div className="text-red-600">Error: {error}</div>
         </div>
-      </Layout>
+      </div>
     )
   }
 
   if (!application) {
     return (
-      <Layout>
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Application Not Found</h3>
-            <p className="text-gray-500">
-              The requested application could not be found.
-            </p>
-          </div>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Application Not Found</h3>
+          <p className="text-gray-500">
+            The requested application could not be found.
+          </p>
         </div>
-      </Layout>
+      </div>
     )
   }
 
@@ -197,8 +189,7 @@ export default function ParentApplicationDetailPage({ params }: { params: { id: 
   const progress = totalRequirements > 0 ? Math.round((completedRequirements / totalRequirements) * 100) : 0
 
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="max-w-6xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Application Details</h1>
@@ -469,6 +460,5 @@ export default function ParentApplicationDetailPage({ params }: { params: { id: 
           </div>
         </div>
       </div>
-    </Layout>
   )
 }

@@ -7,7 +7,8 @@ A comprehensive platform to help high school students manage their college appli
 - **Application Management**: Track applications across multiple universities and application systems
 - **Deadline Tracking**: Never miss important deadlines with visual alerts and calendar integration
 - **Requirements Checklist**: Manage essays, recommendations, transcripts, and other requirements
-- **Parent Dashboard**: Allow parents to monitor progress with read-only access
+- **Parent Dashboard**: Allow parents to monitor progress with read-only access and add notes
+- **Teacher Dashboard**: Enable teachers to guide multiple students through their application process
 - **University Search**: Advanced filtering and comparison tools
 - **Third-party Integration**: Connect with CommonApp and other application platforms
 
@@ -65,7 +66,7 @@ src/
 
 The application uses a comprehensive database schema with the following main entities:
 
-- **Users**: Student, parent, teacher, and admin accounts
+- **Users**: Student, parent, teacher, and admin accounts with role-based access
 - **Student Profiles**: Academic information and preferences
 - **Universities**: Comprehensive university database
 - **Applications**: Application tracking with status workflow

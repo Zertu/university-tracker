@@ -1,411 +1,288 @@
-'use client'
+'use client';
 
-import { useSession } from 'next-auth/react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import Layout from '@/components/layout/Layout'
-import Link from 'next/link'
-import { formatCurrency } from '@/lib/utils'
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import { useRouter, useSearchParams } from 'next/navigation';
 
 interface Application {
-  id: string
-  status: string
-  deadline: string
-  decisionType?: string
-  progress: number
-  totalRequirements: number
-  completedRequirements: number
+  id: string;
   university: {
-    id: string
-    name: string
-    country: string
-    state?: string
-    city: string
-    tuitionInState?: number
-    tuitionOutState?: number
-    applicationFee?: number
-  }
-  parentNotes: Array<{
-    id: string
-    note: string
-    createdAt: string
-  }>
+    name: string;
+    country: string;
+    city: string;
+    state?: string;
+  };
+  applicationType: string;
+  deadline: string;
+  status: string;
+  createdAt: string;
 }
 
-interface ConnectedChild {
-  id: string
-  name: string
-  email: string
-  relationshipType: string
+interface Child {
+  id: string;
+  name: string;
+  email: string;
 }
 
 export default function ParentApplicationsPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const searchParams = useSearchParams()
-  const childId = searchParams.get('childId')
+  const { data: session, status } = useSession();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const childId = searchParams.get('childId');
   
-  const [applications, setApplications] = useState<Application[]>([])
-  const [connectedChildren, setConnectedChildren] = useState<ConnectedChild[]>([])
-  const [selectedChildId, setSelectedChildId] = useState<string | null>(childId)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
+  const [applications, setApplications] = useState<Application[]>([]);
+  const [children, setChildren] = useState<Child[]>([]);
+  const [selectedChild, setSelectedChild] = useState<Child | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (status === 'unauthenticated') {
-      router.push('/auth/signin')
-    } else if (status === 'authenticated' && session?.user.role !== 'parent') {
-      router.push('/dashboard')
+      router.push('/auth/signin');
+      return;
     }
-  }, [status, session, router])
+
+    if (status === 'authenticated' && session?.user?.role !== 'parent') {
+      router.push('/dashboard');
+      return;
+    }
+
+    if (status === 'authenticated') {
+      fetchChildren();
+    }
+  }, [status, session, router]);
 
   useEffect(() => {
-    if (session?.user.role === 'parent') {
-      fetchConnectedChildren()
+    if (selectedChild) {
+      fetchApplications();
     }
-  }, [session])
+  }, [selectedChild]);
 
-  useEffect(() => {
-    if (selectedChildId) {
-      fetchApplications()
-    }
-  }, [selectedChildId])
-
-  const fetchConnectedChildren = async () => {
+  const fetchChildren = async () => {
     try {
-      const response = await fetch('/api/parent/children')
-      
+      setLoading(true);
+      const response = await fetch('/api/relationships');
       if (response.ok) {
-        const data = await response.json()
-        const children = data.children?.map((link: any) => ({
-          id: link.child.id,
-          name: link.child.name,
-          email: link.child.email,
-          relationshipType: link.relationshipType
-        })) || []
+        const data = await response.json();
+        const childUsers = data.relationships
+          .filter((rel: { child: Child }) => rel.child)
+          .map((rel: { child: Child }) => rel.child);
+        setChildren(childUsers);
         
-        setConnectedChildren(children)
-        
-        // If no childId in URL, select first child
-        if (!selectedChildId && children.length > 0) {
-          setSelectedChildId(children[0].id)
+        if (childId) {
+          const foundChild = childUsers.find((child: Child) => child.id === childId);
+          if (foundChild) {
+            setSelectedChild(foundChild);
+          } else if (childUsers.length > 0) {
+            setSelectedChild(childUsers[0]);
+          }
+        } else if (childUsers.length > 0) {
+          setSelectedChild(childUsers[0]);
         }
       }
     } catch (error) {
-      console.error('Error fetching connected children:', error)
+      console.error('Failed to fetch children:', error);
+      setError('Failed to load children');
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   const fetchApplications = async () => {
-    if (!selectedChildId) return
-    
+    if (!selectedChild) return;
+
     try {
-      setLoading(true)
-      setError('')
-      const response = await fetch(`/api/parent/applications/${selectedChildId}`)
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch applications')
+      const response = await fetch(`/api/parent/applications/${selectedChild.id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setApplications(data.applications || []);
       }
-
-      const data = await response.json()
-      setApplications(data.applications)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred')
-    } finally {
-      setLoading(false)
+    } catch (error) {
+      console.error('Failed to fetch applications:', error);
+      setError('Failed to load applications');
     }
-  }
+  };
 
-  if (status === 'loading') {
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'submitted': return 'bg-green-100 text-green-800';
+      case 'under_review': return 'bg-yellow-100 text-yellow-800';
+      case 'decided': return 'bg-blue-100 text-blue-800';
+      case 'in_progress': return 'bg-orange-100 text-orange-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (loading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </Layout>
-    )
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    );
   }
 
   if (!session || session.user.role !== 'parent') {
-    return null
+    return null;
   }
 
-  const selectedChild = connectedChildren.find(child => child.id === selectedChildId)
-
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Applications</h1>
-            <p className="text-gray-600 mt-2">
-              {selectedChild ? `Monitoring ${selectedChild.name}'s applications` : 'Select a student to view applications'}
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div className="mb-4 sm:mb-0">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Applications</h1>
+            <p className="mt-2 text-gray-600">
+              View your child&apos;s university applications
             </p>
           </div>
-          
-          <div className="flex items-center space-x-4">
-            <Link
-              href="/parent-dashboard"
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+          <button
+            onClick={() => router.push('/parent-dashboard')}
+            className="px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500"
+          >
+            Back to Dashboard
+          </button>
+        </div>
+      </div>
+
+      {children.length === 0 ? (
+        <div className="text-center py-12">
+          <div className="text-gray-400 mb-4">
+            <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No Children Connected</h3>
+          <p className="text-gray-600 mb-4">
+            Connect with your child&apos;s account to view their applications.
+          </p>
+          <button
+            onClick={() => router.push('/relationships')}
+            className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          >
+            Connect Child
+          </button>
+        </div>
+      ) : (
+        <>
+          {/* Child Selector */}
+          <div className="mb-6">
+            <label htmlFor="child-selector" className="block text-sm font-medium text-gray-700 mb-2">
+              Select Child
+            </label>
+            <select
+              id="child-selector"
+              value={selectedChild?.id || ''}
+              onChange={(e) => {
+                const child = children.find(c => c.id === e.target.value);
+                setSelectedChild(child || null);
+              }}
+              className="block w-full max-w-xs border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             >
-              ← Back to Dashboard
-            </Link>
-            
-            {connectedChildren.length > 0 && (
-              <div className="flex items-center space-x-2">
-                <label htmlFor="child-select" className="text-sm font-medium text-gray-700">
-                  Student:
-                </label>
-                <select
-                  id="child-select"
-                  value={selectedChildId || ''}
-                  onChange={(e) => {
-                    setSelectedChildId(e.target.value)
-                    router.push(`/parent/applications?childId=${e.target.value}`)
-                  }}
-                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select a student</option>
-                  {connectedChildren.map((child) => (
-                    <option key={child.id} value={child.id}>
-                      {child.name}
-                    </option>
+              {children.map(child => (
+                <option key={child.id} value={child.id}>
+                  {child.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {error && (
+            <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md" role="alert">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm text-red-800">{error}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Applications Table */}
+          <div className="bg-white shadow rounded-lg">
+            <div className="p-6 border-b border-gray-200">
+              <h2 className="text-lg font-medium text-gray-900">
+                {selectedChild?.name}&apos;s Applications
+              </h2>
+              <p className="text-sm text-gray-600 mt-1">
+                {applications.length} application{applications.length !== 1 ? 's' : ''} total
+              </p>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      University
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Deadline
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {applications.map(app => (
+                    <tr key={app.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">{app.university.name}</div>
+                          <div className="text-sm text-gray-500">
+                            {app.university.city}{app.university.state ? `, ${app.university.state}` : ''}, {app.university.country}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {app.applicationType.replace('_', ' ')}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {new Date(app.deadline).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(app.status)}`}>
+                          {app.status.replace('_', ' ')}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button
+                          onClick={() => router.push(`/parent/applications/${app.id}/notes?childId=${selectedChild?.id}`)}
+                          className="text-blue-600 hover:text-blue-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        >
+                          Add Note
+                        </button>
+                      </td>
+                    </tr>
                   ))}
-                </select>
+                </tbody>
+              </table>
+            </div>
+            {applications.length === 0 && (
+              <div className="text-center py-8">
+                <div className="text-gray-400 mb-3">
+                  <svg className="mx-auto h-12 w-12" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h4 className="text-sm font-medium text-gray-900 mb-1">No Applications Yet</h4>
+                <p className="text-sm text-gray-500">
+                  {selectedChild?.name} hasn&apos;t added any applications yet.
+                </p>
               </div>
             )}
           </div>
-        </div>
-
-        {connectedChildren.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Connected Students</h3>
-            <p className="text-gray-500 mb-4">
-              You need to connect with a student to view their applications.
-            </p>
-            <Link
-              href="/relationships"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-            >
-              Connect with Student
-            </Link>
-          </div>
-        ) : !selectedChildId ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Select a Student</h3>
-            <p className="text-gray-500">
-              Choose a student from the dropdown above to view their applications.
-            </p>
-          </div>
-        ) : loading ? (
-          <div className="bg-white rounded-lg shadow p-8">
-            <div className="animate-pulse space-y-4">
-              <div className="h-6 bg-gray-200 rounded w-1/4"></div>
-              <div className="space-y-3">
-                <div className="h-4 bg-gray-200 rounded"></div>
-                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-              </div>
-            </div>
-          </div>
-        ) : error ? (
-          <div className="bg-white rounded-lg shadow p-8">
-            <div className="text-red-600">Error: {error}</div>
-          </div>
-        ) : applications.length === 0 ? (
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No Applications Yet</h3>
-            <p className="text-gray-500">
-              {selectedChild?.name} hasn't started any applications yet.
-            </p>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Summary Stats */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg shadow p-4">
-                <div className="text-2xl font-bold text-blue-600">{applications.length}</div>
-                <div className="text-sm text-gray-500">Total Applications</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <div className="text-2xl font-bold text-green-600">
-                  {applications.filter(app => app.status === 'submitted' || app.status === 'under_review' || app.status === 'decided').length}
-                </div>
-                <div className="text-sm text-gray-500">Submitted</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <div className="text-2xl font-bold text-purple-600">
-                  {applications.filter(app => app.decisionType === 'accepted').length}
-                </div>
-                <div className="text-sm text-gray-500">Accepted</div>
-              </div>
-              <div className="bg-white rounded-lg shadow p-4">
-                <div className="text-2xl font-bold text-orange-600">
-                  {formatCurrency(applications.reduce((total, app) => {
-                    const tuition = app.university.tuitionOutState || app.university.tuitionInState || 0
-                    return total + tuition
-                  }, 0) / Math.max(applications.length, 1))}
-                </div>
-                <div className="text-sm text-gray-500">Avg. Tuition</div>
-              </div>
-            </div>
-
-            {/* Applications List */}
-            <div className="bg-white rounded-lg shadow">
-              <div className="p-6 border-b border-gray-200">
-                <h2 className="text-xl font-semibold text-gray-900">
-                  {selectedChild?.name}'s Applications
-                </h2>
-              </div>
-              <div className="divide-y divide-gray-200">
-                {applications.map((application) => (
-                  <ApplicationRow 
-                    key={application.id} 
-                    application={application}
-                    childId={selectedChildId}
-                  />
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-    </Layout>
-  )
-}
-
-interface ApplicationRowProps {
-  application: Application
-  childId: string
-}
-
-function ApplicationRow({ application, childId }: ApplicationRowProps) {
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'not_started': return 'bg-gray-100 text-gray-800'
-      case 'in_progress': return 'bg-blue-100 text-blue-800'
-      case 'submitted': return 'bg-green-100 text-green-800'
-      case 'under_review': return 'bg-yellow-100 text-yellow-800'
-      case 'decided': return 'bg-purple-100 text-purple-800'
-      default: return 'bg-gray-100 text-gray-800'
-    }
-  }
-
-  const getDecisionColor = (decisionType?: string) => {
-    switch (decisionType) {
-      case 'accepted': return 'text-green-600'
-      case 'rejected': return 'text-red-600'
-      case 'waitlisted': return 'text-yellow-600'
-      default: return 'text-gray-600'
-    }
-  }
-
-  const formatStatus = (status: string) => {
-    return status.split('_').map(word => 
-      word.charAt(0).toUpperCase() + word.slice(1)
-    ).join(' ')
-  }
-
-  const formatDecision = (decisionType?: string) => {
-    if (!decisionType) return null
-    return decisionType.charAt(0).toUpperCase() + decisionType.slice(1)
-  }
-
-  const deadline = new Date(application.deadline)
-  const isUrgent = deadline <= new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days
-  const tuition = application.university.tuitionOutState || application.university.tuitionInState
-
-  return (
-    <div className="p-6 hover:bg-gray-50">
-      <div className="flex justify-between items-start mb-4">
-        <div className="flex-1">
-          <h3 className="text-lg font-medium text-gray-900 mb-1">
-            {application.university.name}
-          </h3>
-          <p className="text-sm text-gray-500">
-            {application.university.city}, {application.university.state || application.university.country}
-          </p>
-        </div>
-        <div className="flex flex-col items-end space-y-2">
-          <span className={`px-3 py-1 text-xs font-medium rounded-full ${getStatusColor(application.status)}`}>
-            {formatStatus(application.status)}
-          </span>
-          {application.decisionType && (
-            <span className={`text-sm font-medium ${getDecisionColor(application.decisionType)}`}>
-              {formatDecision(application.decisionType)}
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-        <div>
-          <p className="text-xs text-gray-500">Deadline</p>
-          <p className={`text-sm font-medium ${isUrgent ? 'text-red-600' : 'text-gray-900'}`}>
-            {deadline.toLocaleDateString()}
-            {isUrgent && <span className="ml-1 text-xs">(Urgent)</span>}
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">Progress</p>
-          <div className="flex items-center space-x-2">
-            <div className="flex-1 bg-gray-200 rounded-full h-2">
-              <div 
-                className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                style={{ width: `${application.progress}%` }}
-              ></div>
-            </div>
-            <span className="text-xs text-gray-600">{application.progress}%</span>
-          </div>
-        </div>
-        <div>
-          <p className="text-xs text-gray-500">Requirements</p>
-          <p className="text-sm font-medium text-gray-900">
-            {application.completedRequirements}/{application.totalRequirements} completed
-          </p>
-        </div>
-        {tuition && (
-          <div>
-            <p className="text-xs text-gray-500">Estimated Tuition</p>
-            <p className="text-sm font-medium text-gray-900">
-              {formatCurrency(tuition)}/year
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-4">
-          {application.parentNotes.length > 0 && (
-            <div className="text-xs text-gray-500">
-              {application.parentNotes.length} note{application.parentNotes.length !== 1 ? 's' : ''}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <Link
-            href={`/parent/applications/${application.id}/notes?childId=${childId}`}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            Add Note
-          </Link>
-          <Link
-            href={`/parent/applications/${application.id}?childId=${childId}`}
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-          >
-            View Details →
-          </Link>
-        </div>
-      </div>
-
-      {application.parentNotes.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <p className="text-xs text-gray-500 mb-2">Latest note:</p>
-          <p className="text-sm text-gray-700 bg-gray-50 p-2 rounded">
-            {application.parentNotes[0].note}
-          </p>
-        </div>
+        </>
       )}
     </div>
-  )
+  );
 }

@@ -74,3 +74,4 @@ async function testAuthFix() {
 }
 
 testAuthFix().catch(console.error);
+

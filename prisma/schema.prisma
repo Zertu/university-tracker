@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -11,24 +8,25 @@ datasource db {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  passwordHash String   @map("password_hash")
-  role         String   @default("student")
-  name         String
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  studentProfile     StudentProfile?
-  parentLinks        ParentChildLink[] @relation("ParentUser")
-  childLinks         ParentChildLink[] @relation("ChildUser")
-  applications       Application[]
-  parentNotes        ParentNote[]
-  notifications      Notification[]
-  integrations       Integration[]
-  savedComparisons   SavedComparison[]
-  statusChanges      ApplicationStatusHistory[]
+  id               String                     @id @default(cuid())
+  email            String                     @unique
+  passwordHash     String                     @map("password_hash")
+  role             String                     @default("student")
+  name             String
+  createdAt        DateTime                   @default(now()) @map("created_at")
+  updatedAt        DateTime                   @updatedAt @map("updated_at")
+  statusChanges    ApplicationStatusHistory[]
+  applications     Application[]
+  integrations     Integration[]
+  notifications    Notification[]
+  childLinks       ParentChildLink[]          @relation("ChildUser")
+  parentLinks      ParentChildLink[]          @relation("ParentUser")
+  parentNotes      ParentNote[]
+  savedComparisons SavedComparison[]
+  studentProfile   StudentProfile?
+  teacherNotes     TeacherNote[]
+  studentLinks     TeacherStudentLink[]       @relation("StudentUser")
+  teacherLinks     TeacherStudentLink[]       @relation("TeacherUser")
 
   @@map("users")
 }
@@ -40,13 +38,11 @@ model StudentProfile {
   gpa             Float?
   satScore        Int?     @map("sat_score")
   actScore        Int?     @map("act_score")
-  targetCountries String?  @map("target_countries") // JSON string for array
-  intendedMajors  String?  @map("intended_majors")  // JSON string for array
+  targetCountries String?  @map("target_countries")
+  intendedMajors  String?  @map("intended_majors")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("student_profiles")
 }
@@ -57,179 +53,185 @@ model ParentChildLink {
   childId          String   @map("child_id")
   relationshipType String   @default("parent") @map("relationship_type")
   createdAt        DateTime @default(now()) @map("created_at")
-
-  // Relations
-  parent User @relation("ParentUser", fields: [parentId], references: [id], onDelete: Cascade)
-  child  User @relation("ChildUser", fields: [childId], references: [id], onDelete: Cascade)
+  child            User     @relation("ChildUser", fields: [childId], references: [id], onDelete: Cascade)
+  parent           User     @relation("ParentUser", fields: [parentId], references: [id], onDelete: Cascade)
 
   @@unique([parentId, childId])
   @@map("parent_child_links")
 }
 
-model University {
+model TeacherStudentLink {
   id               String   @id @default(cuid())
-  name             String
-  country          String
-  state            String?
-  city             String
-  usNewsRanking    Int?     @map("us_news_ranking")
-  acceptanceRate   Float?   @map("acceptance_rate")
-  applicationSystem String  @map("application_system") // 'Common App', 'Coalition', 'Direct'
-  tuitionInState   Float?   @map("tuition_in_state")
-  tuitionOutState  Float?   @map("tuition_out_state")
-  applicationFee   Float?   @map("application_fee")
-  deadlines        String?  // JSON string for deadlines object
-  majorsOffered    String?  @map("majors_offered") // JSON string for array
-  websiteUrl       String?  @map("website_url")
+  teacherId        String   @map("teacher_id")
+  studentId        String   @map("student_id")
+  relationshipType String   @default("advisor") @map("relationship_type")
   createdAt        DateTime @default(now()) @map("created_at")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  student          User     @relation("StudentUser", fields: [studentId], references: [id], onDelete: Cascade)
+  teacher          User     @relation("TeacherUser", fields: [teacherId], references: [id], onDelete: Cascade)
 
-  // Relations
-  applications Application[]
-  savedComparisons SavedComparison[] @relation("ComparisonUniversities")
+  @@unique([teacherId, studentId])
+  @@map("teacher_student_links")
+}
+
+model University {
+  id                String            @id @default(cuid())
+  name              String
+  country           String
+  state             String?
+  city              String
+  usNewsRanking     Int?              @map("us_news_ranking")
+  acceptanceRate    Float?            @map("acceptance_rate")
+  applicationSystem String            @map("application_system")
+  tuitionInState    Float?            @map("tuition_in_state")
+  tuitionOutState   Float?            @map("tuition_out_state")
+  applicationFee    Float?            @map("application_fee")
+  deadlines         String?
+  majorsOffered     String?           @map("majors_offered")
+  websiteUrl        String?           @map("website_url")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+  applications      Application[]
+  savedComparisons  SavedComparison[] @relation("ComparisonUniversities")
 
   @@map("universities")
 }
 
 model Application {
-  id              String    @id @default(cuid())
-  studentId       String    @map("student_id")
-  universityId    String    @map("university_id")
-  applicationType String    @map("application_type") // 'early_decision', 'early_action', 'regular', 'rolling'
+  id              String                       @id @default(cuid())
+  studentId       String                       @map("student_id")
+  universityId    String                       @map("university_id")
+  applicationType String                       @map("application_type")
   deadline        DateTime
-  status          String    @default("not_started") // 'not_started', 'in_progress', 'submitted', 'under_review', 'decided'
-  submittedDate   DateTime? @map("submitted_date")
-  decisionDate    DateTime? @map("decision_date")
-  decisionType    String?   @map("decision_type") // 'accepted', 'rejected', 'waitlisted'
+  status          String                       @default("not_started")
+  submittedDate   DateTime?                    @map("submitted_date")
+  decisionDate    DateTime?                    @map("decision_date")
+  decisionType    String?                      @map("decision_type")
   notes           String?
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  student      User                     @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  university   University               @relation(fields: [universityId], references: [id], onDelete: Cascade)
-  requirements ApplicationRequirement[]
-  parentNotes  ParentNote[]
-  mappings     ExternalApplicationMapping[]
-  statusHistory ApplicationStatusHistory[]
+  createdAt       DateTime                     @default(now()) @map("created_at")
+  updatedAt       DateTime                     @updatedAt @map("updated_at")
+  requirements    ApplicationRequirement[]
+  statusHistory   ApplicationStatusHistory[]
+  university      University                   @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  student         User                         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  mappings        ExternalApplicationMapping[]
+  parentNotes     ParentNote[]
+  teacherNotes    TeacherNote[]
 
   @@unique([studentId, universityId, applicationType])
   @@map("applications")
 }
 
 model ApplicationRequirement {
-  id              String    @id @default(cuid())
-  applicationId   String    @map("application_id")
-  requirementType String    @map("requirement_type") // 'essay', 'recommendation', 'transcript', 'test_scores'
+  id              String      @id @default(cuid())
+  applicationId   String      @map("application_id")
+  requirementType String      @map("requirement_type")
   title           String
   description     String?
-  status          String    @default("not_started") // 'not_started', 'in_progress', 'completed'
+  status          String      @default("not_started")
   deadline        DateTime?
   notes           String?
-  createdAt       DateTime  @default(now()) @map("created_at")
-  updatedAt       DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @updatedAt @map("updated_at")
+  application     Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@map("application_requirements")
 }
 
 model ParentNote {
-  id            String   @id @default(cuid())
-  parentId      String   @map("parent_id")
-  applicationId String   @map("application_id")
+  id            String      @id @default(cuid())
+  parentId      String      @map("parent_id")
+  applicationId String      @map("application_id")
   note          String
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  // Relations
-  parent      User        @relation(fields: [parentId], references: [id], onDelete: Cascade)
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  parent        User        @relation(fields: [parentId], references: [id], onDelete: Cascade)
 
   @@map("parent_notes")
+}
+
+model TeacherNote {
+  id            String      @id @default(cuid())
+  teacherId     String      @map("teacher_id")
+  applicationId String      @map("application_id")
+  note          String
+  createdAt     DateTime    @default(now()) @map("created_at")
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  teacher       User        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@map("teacher_notes")
 }
 
 model Notification {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
-  type      String   // 'deadline_reminder', 'status_update', 'decision_received'
+  type      String
   title     String
   message   String
   read      Boolean  @default(false)
   createdAt DateTime @default(now()) @map("created_at")
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
 }
 
 model Integration {
-  id               String    @id @default(cuid())
-  userId           String    @map("user_id")
-  provider         String    // 'commonapp', 'coalition', etc.
-  externalUserId   String    @map("external_user_id")
-  accessToken      String    @map("access_token")
-  refreshToken     String    @map("refresh_token")
-  tokenExpiresAt   DateTime  @map("token_expires_at")
-  syncEnabled      Boolean   @default(true) @map("sync_enabled")
-  lastSyncAt       DateTime? @map("last_sync_at")
-  integrationData  String?   @map("integration_data") // JSON string for provider-specific data
-  createdAt        DateTime  @default(now()) @map("created_at")
-  updatedAt        DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  user     User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  mappings ExternalApplicationMapping[]
+  id              String                       @id @default(cuid())
+  userId          String                       @map("user_id")
+  provider        String
+  externalUserId  String                       @map("external_user_id")
+  accessToken     String                       @map("access_token")
+  refreshToken    String                       @map("refresh_token")
+  tokenExpiresAt  DateTime                     @map("token_expires_at")
+  syncEnabled     Boolean                      @default(true) @map("sync_enabled")
+  lastSyncAt      DateTime?                    @map("last_sync_at")
+  integrationData String?                      @map("integration_data")
+  createdAt       DateTime                     @default(now()) @map("created_at")
+  updatedAt       DateTime                     @updatedAt @map("updated_at")
+  mappings        ExternalApplicationMapping[]
+  user            User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, provider])
   @@map("integrations")
 }
 
 model ExternalApplicationMapping {
-  id                    String    @id @default(cuid())
-  applicationId         String    @map("application_id")
-  integrationId         String    @map("integration_id")
-  externalApplicationId String    @map("external_application_id")
-  syncStatus            String    @default("pending") @map("sync_status") // 'pending', 'synced', 'error'
-  lastSyncedAt          DateTime? @map("last_synced_at")
-  syncErrorMessage      String?   @map("sync_error_message")
-  createdAt             DateTime  @default(now()) @map("created_at")
-  updatedAt             DateTime  @updatedAt @map("updated_at")
-
-  // Relations
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  integration Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  id                    String      @id @default(cuid())
+  applicationId         String      @map("application_id")
+  integrationId         String      @map("integration_id")
+  externalApplicationId String      @map("external_application_id")
+  syncStatus            String      @default("pending") @map("sync_status")
+  lastSyncedAt          DateTime?   @map("last_synced_at")
+  syncErrorMessage      String?     @map("sync_error_message")
+  createdAt             DateTime    @default(now()) @map("created_at")
+  updatedAt             DateTime    @updatedAt @map("updated_at")
+  integration           Integration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  application           Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@unique([applicationId, integrationId, externalApplicationId])
   @@map("external_application_mappings")
 }
 
 model ApplicationStatusHistory {
-  id            String   @id @default(cuid())
-  applicationId String   @map("application_id")
-  fromStatus    String?  @map("from_status") // null for initial status
-  toStatus      String   @map("to_status")
-  changedBy     String   @map("changed_by") // user who made the change
+  id            String      @id @default(cuid())
+  applicationId String      @map("application_id")
+  fromStatus    String?     @map("from_status")
+  toStatus      String      @map("to_status")
+  changedBy     String      @map("changed_by")
   notes         String?
-  createdAt     DateTime @default(now()) @map("created_at")
-
-  // Relations
-  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  user        User        @relation(fields: [changedBy], references: [id], onDelete: Cascade)
+  createdAt     DateTime    @default(now()) @map("created_at")
+  user          User        @relation(fields: [changedBy], references: [id], onDelete: Cascade)
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
 
   @@map("application_status_history")
 }
 
 model SavedComparison {
-  id          String   @id @default(cuid())
-  userId      String   @map("user_id")
-  name        String
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
-
-  // Relations
+  id           String       @id @default(cuid())
+  userId       String       @map("user_id")
+  name         String
+  description  String?
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   universities University[] @relation("ComparisonUniversities")
 

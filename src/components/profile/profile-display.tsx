@@ -38,6 +38,7 @@ export default function ProfileDisplay({
   showEditButton = true, 
   showCompletionStatus = true 
 }: ProfileDisplayProps) {
+  const [isParentView, setIsParentView] = useState(false);
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [completion, setCompletion] = useState<ProfileCompletion | null>(null);
   const [loading, setLoading] = useState(true);
@@ -52,21 +53,39 @@ export default function ProfileDisplay({
 
   const fetchProfile = async () => {
     try {
-      const response = await fetch('/api/profile');
+      // Check if we're viewing a child's profile (for parents)
+      const urlParams = new URLSearchParams(window.location.search);
+      let childId = urlParams.get('childId');
+      
+      // If no childId in query params, check if we're in parent profile route
+      if (!childId) {
+        const pathParts = window.location.pathname.split('/');
+        if (pathParts.includes('parent') && pathParts.includes('profile') && pathParts.length > 3) {
+          childId = pathParts[pathParts.length - 1];
+        }
+      }
+      
+      const url = childId ? `/api/profile?childId=${childId}` : '/api/profile';
+      const response = await fetch(url);
       
       if (response.status === 404) {
         setProfile(null);
         setError(null);
+        setIsParentView(!!childId);
         return;
       }
       
       if (!response.ok) {
-        throw new Error('Failed to fetch profile');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to fetch profile');
       }
 
       const data = await response.json();
       setProfile(data);
       setError(null);
+      
+      // Check if this is a parent viewing a child's profile
+      setIsParentView(!!childId);
     } catch (error) {
       console.error('Error fetching profile:', error);
       setError(error instanceof Error ? error.message : 'Failed to load profile');
@@ -77,11 +96,18 @@ export default function ProfileDisplay({
 
   const fetchCompletion = async () => {
     try {
-      const response = await fetch('/api/profile/completion');
+      // Check if we're viewing a child's profile (for parents)
+      const urlParams = new URLSearchParams(window.location.search);
+      const childId = urlParams.get('childId');
       
-      if (response.ok) {
-        const data = await response.json();
-        setCompletion(data.completion);
+      // Only fetch completion for students viewing their own profile
+      if (!childId) {
+        const response = await fetch('/api/profile/completion');
+        
+        if (response.ok) {
+          const data = await response.json();
+          setCompletion(data.completion);
+        }
       }
     } catch (error) {
       console.error('Error fetching completion:', error);
@@ -158,8 +184,10 @@ export default function ProfileDisplay({
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg shadow-md">
       <div className="flex justify-between items-start mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">Academic Profile</h2>
-        {showEditButton && (
+        <h2 className="text-2xl font-bold text-gray-900">
+          {isParentView ? 'Child Academic Profile' : 'Academic Profile'}
+        </h2>
+        {showEditButton && !isParentView && (
           <Link
             href="/profile/edit"
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"

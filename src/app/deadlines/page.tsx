@@ -100,7 +100,7 @@ export default async function DeadlinesPage() {
                 <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Request recommendation letters at least 6 weeks in advance</span>
+                <span>Create a checklist for each application requirement</span>
               </div>
             </div>
             <div className="space-y-2">
@@ -108,13 +108,13 @@ export default async function DeadlinesPage() {
                 <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Submit applications at least 1 week before the deadline</span>
+                <span>Set reminders for important dates and milestones</span>
               </div>
               <div className="flex items-start space-x-2">
                 <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                <span>Keep track of both application and requirement deadlines</span>
+                <span>Keep all documents organized in one place</span>
               </div>
               <div className="flex items-start space-x-2">
                 <svg className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

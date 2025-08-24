@@ -3,7 +3,7 @@
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Layout from '@/components/layout/Layout'
+
 import Link from 'next/link'
 
 interface ParentNote {
@@ -140,11 +140,9 @@ export default function ApplicationNotesPage({ params }: { params: { id: string 
 
   if (status === 'loading' || loading) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
     )
   }
 
@@ -154,28 +152,25 @@ export default function ApplicationNotesPage({ params }: { params: { id: string 
 
   if (!childId) {
     return (
-      <Layout>
-        <div className="max-w-4xl mx-auto">
-          <div className="bg-white rounded-lg shadow p-8 text-center">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Missing Child ID</h3>
-            <p className="text-gray-500 mb-4">
-              Please access this page through the parent dashboard.
-            </p>
-            <Link
-              href="/parent-dashboard"
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
-            >
-              Go to Dashboard
-            </Link>
-          </div>
+      <div className="max-w-4xl mx-auto">
+        <div className="bg-white rounded-lg shadow p-8 text-center">
+          <h3 className="text-lg font-medium text-gray-900 mb-2">Missing Child ID</h3>
+          <p className="text-gray-500 mb-4">
+            Please access this page through the parent dashboard.
+          </p>
+          <Link
+            href="/parent-dashboard"
+            className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700"
+          >
+            Go to Dashboard
+          </Link>
         </div>
-      </Layout>
+      </div>
     )
   }
 
   return (
-    <Layout>
-      <div className="max-w-4xl mx-auto space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Application Notes</h1>
@@ -283,6 +278,5 @@ export default function ApplicationNotesPage({ params }: { params: { id: string 
           </div>
         )}
       </div>
-    </Layout>
   )
 }

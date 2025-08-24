@@ -3,7 +3,6 @@
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import Layout from '@/components/layout/Layout'
 import Link from 'next/link'
 
 interface ParentNote {
@@ -128,11 +127,9 @@ export default function ParentNotesPage() {
 
   if (status === 'loading') {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-64">
-          <div className="text-lg">Loading...</div>
-        </div>
-      </Layout>
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
     )
   }
 
@@ -143,8 +140,7 @@ export default function ParentNotesPage() {
   const selectedChild = connectedChildren.find(child => child.id === selectedChildId)
 
   return (
-    <Layout>
-      <div className="max-w-7xl mx-auto space-y-6">
+    <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">My Notes</h1>
@@ -304,6 +300,5 @@ export default function ParentNotesPage() {
           </div>
         )}
       </div>
-    </Layout>
   )
 }

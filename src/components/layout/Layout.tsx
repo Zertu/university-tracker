@@ -40,6 +40,7 @@ export default function Layout({ children }: LayoutProps) {
       name: 'Dashboard',
       href: session.user.role === 'admin' ? '/admin' :
             session.user.role === 'student' ? '/dashboard' : 
+            session.user.role === 'teacher' ? '/teacher-dashboard' :
             '/parent-dashboard',
       show: true
     },
@@ -60,12 +61,14 @@ export default function Layout({ children }: LayoutProps) {
     },
     {
       name: 'Profile',
-      href: '/profile',
+      href: session.user.role === 'parent' ? '/parent/profile' : 
+            session.user.role === 'teacher' ? '/teacher/profile' : '/profile',
       show: true
     },
     {
-      name: session.user.role === 'parent' ? 'Students' : 'Parents',
-      href: '/relationships',
+      name: session.user.role === 'parent' ? 'Students' : 
+            session.user.role === 'teacher' ? 'Students' : 'Parents',
+      href: session.user.role === 'teacher' ? '/teacher/relationships' : '/relationships',
       show: session.user.role !== 'admin'
     },
     {

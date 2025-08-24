@@ -5,8 +5,8 @@ import { ProfileService } from '@/lib/services/profile';
 import { CreateStudentProfileSchema, UpdateStudentProfileSchema } from '@/lib/validations/profile';
 import { z } from 'zod';
 
-// GET /api/profile - Get current user's profile
-export async function GET() {
+// GET /api/profile - Get current user's profile or child's profile for parents
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
     
@@ -14,11 +14,41 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    if (session.user.role !== 'student') {
+    const { searchParams } = new URL(request.url);
+    const childId = searchParams.get('childId');
+
+    let targetUserId = session.user.id;
+
+    // If parent is requesting child's profile
+    if (session.user.role === 'parent' && childId) {
+      // Verify parent has access to this child
+      const { PrismaClient } = await import('@prisma/client');
+      const prisma = new PrismaClient();
+      
+      const relationship = await prisma.parentChildLink.findUnique({
+        where: {
+          parentId_childId: {
+            parentId: session.user.id,
+            childId: childId
+          }
+        }
+      });
+
+      if (!relationship) {
+        await prisma.$disconnect();
+        return NextResponse.json({ error: 'Access denied to child profile' }, { status: 403 });
+      }
+
+      targetUserId = childId;
+      await prisma.$disconnect();
+    } else if (session.user.role === 'parent' && !childId) {
+      // Parent without childId - return error or redirect to parent dashboard
+      return NextResponse.json({ error: 'Parent must specify childId to view profile' }, { status: 400 });
+    } else if (session.user.role !== 'student') {
       return NextResponse.json({ error: 'Only students can have academic profiles' }, { status: 403 });
     }
 
-    const profile = await ProfileService.getProfileByUserId(session.user.id);
+    const profile = await ProfileService.getProfileByUserId(targetUserId);
     
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });

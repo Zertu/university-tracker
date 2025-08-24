@@ -75,3 +75,4 @@ async function testApplicationsAPI() {
 }
 
 testApplicationsAPI().catch(console.error);
+
