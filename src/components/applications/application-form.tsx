@@ -71,7 +71,7 @@ export function ApplicationForm({ universities, onSuccess, onCancel }: Applicati
         onSuccess();
       } else {
         // Show success message and redirect
-        console.log('✅ Application created successfully:', application);
+
         
         // Redirect to applications list with success parameter
         router.push('/applications?created=true');

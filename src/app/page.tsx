@@ -11,19 +11,19 @@ export default function Home() {
         Manage your college applications, track deadlines, and stay organized throughout your application process.
       </p>
       <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold mb-4">Authentication System Ready</h3>
+        <h3 className="text-xl font-semibold mb-4">Get Started</h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-left">
-          <div className="p-4 bg-green-50 rounded-lg">
-            <h4 className="font-medium text-green-800">✓ NextAuth.js Setup</h4>
-            <p className="text-sm text-green-600">Email/password authentication configured</p>
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <h4 className="font-medium text-blue-800">📝 Track Applications</h4>
+            <p className="text-sm text-blue-600">Manage your college applications</p>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <h4 className="font-medium text-green-800">✓ User Registration</h4>
-            <p className="text-sm text-green-600">API routes for user creation</p>
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <h4 className="font-medium text-blue-800">⏰ Monitor Deadlines</h4>
+            <p className="text-sm text-blue-600">Stay on top of important dates</p>
           </div>
-          <div className="p-4 bg-green-50 rounded-lg">
-            <h4 className="font-medium text-green-800">✓ JWT Sessions</h4>
-            <p className="text-sm text-green-600">Token handling and persistence</p>
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <h4 className="font-medium text-blue-800">📊 View Progress</h4>
+            <p className="text-sm text-blue-600">Track your application status</p>
           </div>
         </div>
       </div>

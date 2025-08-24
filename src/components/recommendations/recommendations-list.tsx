@@ -111,7 +111,7 @@ export default function RecommendationsList({
 
   const handleAddToList = async (universityId: string) => {
     // This would integrate with the application system
-    console.log('Adding university to application list:', universityId);
+    
     // TODO: Implement add to application list functionality
   };
 

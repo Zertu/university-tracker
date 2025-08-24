@@ -110,7 +110,6 @@ export class RecommendationService {
   static async refreshRecommendations(userId: string): Promise<void> {
     // This could be used to trigger background recalculation
     // For now, recommendations are calculated on-demand
-    console.log(`Refreshing recommendations for user ${userId}`);
   }
 
   // Get recommendation by university ID
