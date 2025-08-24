@@ -227,7 +227,7 @@ export default function ParentNotesPage() {
                     Notes Summary
                   </h2>
                   <p className="text-sm text-gray-500 mt-1">
-                    {notes.length} note{notes.length !== 1 ? 's' : ''} across {selectedChild?.name}'s applications
+                    {notes.length} note{notes.length !== 1 ? 's' : ''} across {selectedChild?.name}&apos;s applications
                   </p>
                 </div>
                 <Link
@@ -244,7 +244,7 @@ export default function ParentNotesPage() {
               <div className="bg-white rounded-lg shadow p-8 text-center">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Notes Yet</h3>
                 <p className="text-gray-500 mb-4">
-                  You haven't added any notes about {selectedChild?.name}'s applications yet.
+                  You haven&apos;t added any notes about {selectedChild?.name}&apos;s applications yet.
                 </p>
                 <Link
                   href={`/parent/applications?childId=${selectedChildId}`}
