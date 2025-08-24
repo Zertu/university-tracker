@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 
@@ -24,7 +24,7 @@ interface Child {
   email: string;
 }
 
-export default function ParentApplicationsPage() {
+function ParentApplicationsContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -284,5 +284,17 @@ export default function ParentApplicationsPage() {
         </>
       )}
     </div>
+  );
+}
+
+export default function ParentApplicationsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    }>
+      <ParentApplicationsContent />
+    </Suspense>
   );
 }

@@ -7,7 +7,7 @@ import Link from 'next/link';
 import Layout from '@/components/layout/Layout';
 import { ApplicationList } from '@/components/applications/application-list';
 import { SuccessMessage } from '@/components/ui/success-message';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { ApplicationWithRelations } from '@/lib/services/application';
 
 interface ApplicationStats {
@@ -22,7 +22,7 @@ interface ApplicationStats {
   upcomingDeadlines: number;
 }
 
-export default function ApplicationsPage() {
+function ApplicationsPageContent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -218,5 +218,17 @@ export default function ApplicationsPage() {
         </div>
         <ApplicationList initialApplications={applications} />
       </div>
+  );
+}
+
+export default function ApplicationsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    }>
+      <ApplicationsPageContent />
+    </Suspense>
   );
 }

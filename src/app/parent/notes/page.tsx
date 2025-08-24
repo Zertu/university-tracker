@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 import Link from 'next/link'
 
 interface ParentNote {
@@ -27,7 +27,7 @@ interface ConnectedChild {
   relationshipType: string
 }
 
-export default function ParentNotesPage() {
+function ParentNotesPageContent() {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -301,4 +301,16 @@ export default function ParentNotesPage() {
         )}
       </div>
   )
+}
+
+export default function ParentNotesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    }>
+      <ParentNotesPageContent />
+    </Suspense>
+  );
 }

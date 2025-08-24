@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
 import Link from 'next/link'
 import { formatCurrency } from '@/lib/utils'
@@ -48,7 +48,15 @@ export default async function ParentApplicationDetailPage({ params }: { params: 
   const resolvedParams = await params
   const applicationId = resolvedParams.id
   
-  return <ClientComponent applicationId={applicationId} />
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    }>
+      <ClientComponent applicationId={applicationId} />
+    </Suspense>
+  )
 }
 
 function ClientComponent({ applicationId }: { applicationId: string }) {

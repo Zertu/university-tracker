@@ -2,7 +2,7 @@
 
 import { useSession } from 'next-auth/react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
 
 import Link from 'next/link'
 
@@ -22,7 +22,7 @@ interface Application {
   }
 }
 
-export default function ApplicationNotesPage({ params }: { params: Promise<{ id: string }> }) {
+function ApplicationNotesPageContent({ params }: { params: Promise<{ id: string }> }) {
   const { data: session, status } = useSession()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -287,4 +287,16 @@ export default function ApplicationNotesPage({ params }: { params: Promise<{ id:
         )}
       </div>
   )
+}
+
+export default function ApplicationNotesPage({ params }: { params: Promise<{ id: string }> }) {
+  return (
+    <Suspense fallback={
+      <div className="flex justify-center items-center h-64">
+        <div className="text-lg">Loading...</div>
+      </div>
+    }>
+      <ApplicationNotesPageContent params={params} />
+    </Suspense>
+  );
 }
