@@ -48,6 +48,27 @@ A comprehensive platform to help high school students manage their college appli
 
 5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
+### Test Accounts
+
+The application comes with pre-configured test accounts for different user roles:
+
+#### Student Account
+- **Email**: student@test.com
+- **Password**: password123
+- **Role**: Student
+
+#### Parent Account
+- **Email**: parent@test.com
+- **Password**: password123
+- **Role**: Parent
+
+#### Teacher Account
+- **Email**: teacher@test.com
+- **Password**: password123
+- **Role**: Teacher
+
+> **Note**: These are test accounts for development purposes. In production, use proper authentication and user registration.
+
 ## Project Structure
 
 ```
