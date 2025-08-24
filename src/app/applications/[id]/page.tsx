@@ -60,7 +60,7 @@ export default function ApplicationDetailPage({ params }: PageProps) {
     fetchApplication();
   }, [status, session?.user?.id, params]);
 
-  const handleStatusChange = (newStatus: ApplicationStatus) => {
+  const handleStatusChange = (_newStatus: ApplicationStatus) => {
     // Refresh the page to show updated status
     window.location.reload();
   };
@@ -84,7 +84,7 @@ export default function ApplicationDetailPage({ params }: PageProps) {
           <div className="text-center">
             <h1 className="text-2xl font-bold text-gray-900 mb-4">Application Not Found</h1>
             <p className="text-gray-600 mb-8">
-              The application you're looking for doesn't exist or you don't have permission to view it.
+              The application you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to view it.
             </p>
             <Link
               href="/applications"
