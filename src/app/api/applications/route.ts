@@ -1,48 +1,78 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { ApplicationService } from '@/lib/services/application';
 import { CreateApplicationSchema, ApplicationQuerySchema } from '@/lib/validations/application';
-import { createStudentHandler } from '@/lib/api/middleware';
+import { z } from 'zod';
 
 // GET /api/applications - Get all applications for the current student
-export const GET = createStudentHandler(
-  async (request, context, { auth, validated }) => {
-    const result = await ApplicationService.getApplicationsByStudent(
-      auth!.user.id,
-      validated!.query
-    );
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
 
+    if (session.user.role !== 'student') {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const { searchParams } = new URL(request.url);
+    const query = {
+      status: searchParams.get('status') || undefined,
+      applicationType: searchParams.get('applicationType') || undefined,
+      limit: searchParams.get('limit') ? parseInt(searchParams.get('limit')!) : 20,
+      offset: searchParams.get('offset') ? parseInt(searchParams.get('offset')!) : 0,
+    };
+
+    const result = await ApplicationService.getApplicationsByStudent(session.user.id, query);
     return NextResponse.json(result);
-  },
-  {
-    validation: {
-      query: ApplicationQuerySchema,
-    },
-    rateLimit: 'general',
-    permission: {
-      resource: 'application',
-      action: 'read',
-    },
+  } catch (error) {
+    console.error('Error fetching applications:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-);
+}
 
 // POST /api/applications - Create a new application
-export const POST = createStudentHandler(
-  async (request, context, { auth, validated }) => {
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    if (session.user.role !== 'student') {
+      return NextResponse.json({ error: 'Access denied' }, { status: 403 });
+    }
+
+    const body = await request.json();
+    
+    // Validate request body
+    const validatedBody = CreateApplicationSchema.parse(body);
+    
     const application = await ApplicationService.createApplication(
-      auth!.user.id,
-      validated!.body
+      session.user.id,
+      validatedBody
     );
 
     return NextResponse.json(application, { status: 201 });
-  },
-  {
-    validation: {
-      body: CreateApplicationSchema,
-    },
-    rateLimit: 'general',
-    permission: {
-      resource: 'application',
-      action: 'create',
-    },
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: 'Validation error', details: error.errors },
+        { status: 400 }
+      );
+    }
+    
+    console.error('Error creating application:', error);
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    );
   }
-);
+}

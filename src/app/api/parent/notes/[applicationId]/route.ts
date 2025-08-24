@@ -11,11 +11,12 @@ const createNoteSchema = z.object({
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { applicationId: string } }
+  { params }: { params: Promise<{ applicationId: string }> }
 ) {
   return withAuth(request, async (req, user) => {
     try {
-      const { applicationId } = params
+      const resolvedParams = await params
+      const { applicationId } = resolvedParams
 
       // Get the application to check if parent has access to the student
       const application = await prisma.application.findUnique({
@@ -62,11 +63,12 @@ export async function GET(
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { applicationId: string } }
+  { params }: { params: Promise<{ applicationId: string }> }
 ) {
   return withAuth(request, async (req, user) => {
     try {
-      const { applicationId } = params
+      const resolvedParams = await params
+      const { applicationId } = resolvedParams
       const body = await request.json()
       
       // Validate input

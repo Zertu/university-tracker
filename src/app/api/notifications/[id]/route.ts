@@ -5,7 +5,7 @@ import { notificationService } from '@/lib/services/notification';
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -13,6 +13,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const resolvedParams = await params;
     const body = await request.json();
     const { read } = body;
 
@@ -24,7 +25,7 @@ export async function PATCH(
     }
 
     if (read) {
-      const success = await notificationService.markAsRead(params.id, session.user.id);
+      const success = await notificationService.markAsRead(resolvedParams.id, session.user.id);
       if (!success) {
         return NextResponse.json(
           { error: 'Notification not found or access denied' },
@@ -45,7 +46,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const session = await getServerSession(authOptions);
@@ -53,7 +54,8 @@ export async function DELETE(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const success = await notificationService.deleteNotification(params.id, session.user.id);
+    const resolvedParams = await params;
+    const success = await notificationService.deleteNotification(resolvedParams.id, session.user.id);
     if (!success) {
       return NextResponse.json(
         { error: 'Notification not found or access denied' },

@@ -6,11 +6,12 @@ const prisma = new PrismaClient()
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { childId: string } }
+  { params }: { params: Promise<{ childId: string }> }
 ) {
   return withAuth(request, async (req, user) => {
     try {
-      const { childId } = params
+      const resolvedParams = await params
+      const { childId } = resolvedParams
 
       // Validate that the parent has access to this child's data
       const hasAccess = await validateUserAccess(childId, user)
