@@ -44,19 +44,23 @@ interface Application {
   }>
 }
 
-export default async function ParentApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const resolvedParams = await params
-  const applicationId = resolvedParams.id
-  
+export default function ParentApplicationDetailPage({ params }: { params: Promise<{ id: string }> }) {
   return (
     <Suspense fallback={
       <div className="flex justify-center items-center h-64">
         <div className="text-lg">Loading...</div>
       </div>
     }>
-      <ClientComponent applicationId={applicationId} />
+      <AsyncComponent params={params} />
     </Suspense>
   )
+}
+
+async function AsyncComponent({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = await params
+  const applicationId = resolvedParams.id
+  
+  return <ClientComponent applicationId={applicationId} />
 }
 
 function ClientComponent({ applicationId }: { applicationId: string }) {
